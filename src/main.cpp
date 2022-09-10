@@ -2,43 +2,66 @@
 #include <cmath>
 
 #define SIZE_OF_BYTE 8
-#define SET_BIT_8(N, I, V) N = (V) ? ((1 << (SIZE_OF_BYTE - (I) - 1)) | (N)) : (~(1 << (SIZE_OF_BYTE - (I) - 1)) & (N));
+#define POW_2_SIZE_OF_BYTE 256
 #define GET_BIT_8(N, I) ((1 << (SIZE_OF_BYTE - (I) - 1) & (N)) >> (SIZE_OF_BYTE - (I) - 1))
+
+unsigned int ceil_log8(unsigned int number){
+    if (!number){
+        return 1;
+    }
+
+    unsigned long long result = 0;
+
+    while (number){
+        result++;
+        number /= POW_2_SIZE_OF_BYTE;
+    }
+
+    return result;
+}
+
 
 
 class BigInt {
 private:
-    std::string binaryRepresentation;
+    unsigned char* data;
+    unsigned long long data_length;
+    bool is_positive;
 public:
     BigInt();
     explicit BigInt(int number){
-        binaryRepresentation = "";
+        is_positive = (number >= 0);
 
-        while (number){
-            binaryRepresentation.insert(0, 1, 0);
-            for (unsigned char j = 0; j < 8; j++){
-                SET_BIT_8(binaryRepresentation[0], 8 - j - 1, number % 2);
-                number /= 2;
-            }
+        unsigned int abs_number = abs(number);
+
+        data_length = ceil_log8(abs_number);
+
+        data = new unsigned char[data_length];
+
+        for (unsigned int i = data_length; i > 0; i--){
+            data[i - 1] = abs_number % POW_2_SIZE_OF_BYTE;
+            abs_number /= POW_2_SIZE_OF_BYTE;
         }
 
-        const unsigned int length = binaryRepresentation.length();
-        for (unsigned int l = 0; l < length; l++){
-            for (int i = 0; i < 8; i++){
-                std::cout << GET_BIT_8(binaryRepresentation[l], i);
-            }
-            std::cout << " ";
+        std::cout << "Positive=" << is_positive << " data_length=" << data_length << "\n";
+
+        for (unsigned int i = 0; i < data_length; i++){
+            std::cout << int(data[i]) << " ";
         }
     }
-    BigInt(std::string); // ??????? ?????????? std::invalid_argument ??? ??????
+    BigInt(std::string){
+
+    }
     BigInt(const BigInt&);
-    ~BigInt()= default;
+    ~BigInt(){
+        delete data;
+    }
 
     BigInt(BigInt&&);
     BigInt& operator=(BigInt&&);
 
 
-    BigInt& operator=(const BigInt&);  //???????? ???????????? ?????? ????!
+    BigInt& operator=(const BigInt&);
 
     BigInt operator~();
 
@@ -85,7 +108,7 @@ BigInt operator|(const BigInt&, const BigInt&);
 
 
 std::ostream& operator<<(std::ostream& out, const BigInt& i){
-    out << "123";
+
 
     return out;
 }
@@ -94,7 +117,7 @@ std::istream& operator>>(std::istream& o, BigInt& i);
 
 
 int main() {
-    BigInt b = BigInt(473829473);
+    BigInt b = BigInt(3123213);
 
     return 0;
 }
