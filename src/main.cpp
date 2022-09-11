@@ -73,6 +73,8 @@ private:
     unsigned long long decimal_digits_count;
     unsigned long long binary_digits_count;
 
+    unsigned long long binary_blocks_count;
+
     Byte* abs_decimal_representation;
     Byte* abs_binary_compact_representation;
 public:
@@ -81,6 +83,8 @@ public:
 
         decimal_digits_count = 1;
         binary_digits_count = 1;
+
+        binary_blocks_count = 1;
 
         abs_decimal_representation = new Byte[1];
         abs_binary_compact_representation = new Byte[1];
@@ -96,7 +100,7 @@ public:
         decimal_digits_count = ceil_log(10, abs_number);
         binary_digits_count = ceil_log(2, abs_number);
 
-        const unsigned int binary_blocks_count = ceil_div(binary_digits_count, 8); // log(256, x) = log(2, x) * 8
+        binary_blocks_count = ceil_div(binary_digits_count, 8); // log(256, x) = log(2, x) * 8
 
         abs_decimal_representation = new Byte[decimal_digits_count];
         abs_binary_compact_representation = new Byte[binary_blocks_count];
@@ -170,7 +174,8 @@ public:
     operator std::string() const;
 
     [[nodiscard]] size_t size() const{
-        //return sizeof(is_positive) + abs_decimal_representation.length();
+        return sizeof(is_positive) + sizeof(decimal_digits_count) + sizeof(binary_digits_count) +
+        sizeof(binary_blocks_count) + decimal_digits_count + binary_blocks_count;
     }
 
     [[nodiscard]] std::string decimal_representation() const{
@@ -197,5 +202,9 @@ std::istream& operator>>(std::istream& o, BigInt& i);
 
 
 int main() {
+    BigInt a = BigInt(312321321);
+
+    std::cout << a.size();
+
     return 0;
 }
