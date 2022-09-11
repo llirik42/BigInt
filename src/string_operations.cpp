@@ -1,7 +1,6 @@
 #include <iostream>
+#include "utils.h"
 
-#define CHAR_TO_DIGIT(C) (int((C) - '0'))
-#define DIGIT_TO_CHAR(D) (char(D + '0'))
 
 std::string sub(std::string s1, std::string s2){
     if (s1 == s2){
@@ -77,7 +76,7 @@ void increment_str(std::string& str){
     str = result;
 }
 
-void str_division(std::string a, const std::string& b, std::string& q, std::string& r){
+void str_division(std::string a, const std::string &b, std::string &q, std::string &r){
     std::string result = "0";
 
     while (true){
