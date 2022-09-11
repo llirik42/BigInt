@@ -9,11 +9,15 @@ bool is_str_numerical(std::string str){
         return false;
     }
 
-    if (length == 1 && !std::isdigit(str[0])){
+    if (length == 1){
+        return std::isdigit(str[0]);
+    }
+
+    if (!std::isdigit(str[0]) && str[0] != '-'){
         return false;
     }
 
-    if ((length != 1 && str[0] == '0') || (length != 2 && str[0] == '-' && str[1] == '0')){
+    if (str[0] == '0' || (str[0] == '-' && str[1] == '0')){
         return false;
     }
 
@@ -49,17 +53,18 @@ BigInt::BigInt(std::string str) {
         throw std::invalid_argument("Invalid string for BigInt");
     }
 
-    is_positive = (str[0] != '-');
+    is_positive = str[0] != '-';
+
+    if (!is_positive){
+        str.erase(0, 1);
+    }
 
     abs_decimal_representation = str;
-    if (!is_positive){
-        abs_decimal_representation.erase(0, 1);
-    }
 
     while (str != "0"){
         unsigned char current_block_value = 0;
 
-        unsigned char current_m = 1;
+        unsigned int current_m = 1;
         for (unsigned char i = 0; i < SIZE_OF_BYTE; i++){
             std::string r;
 
@@ -68,11 +73,8 @@ BigInt::BigInt(std::string str) {
             current_block_value += current_m * CHAR_TO_DIGIT(r[0]);
             current_m *= 2;
         }
-        abs_binary_compact_representation.insert(0, 1, char(current_block_value));
+        abs_binary_compact_representation.insert(0, 1, (char)(current_block_value));
     }
-
-
-
 }
 BigInt::BigInt(const BigInt& b) {
     is_positive = b.is_positive;
@@ -83,10 +85,22 @@ BigInt::BigInt(const BigInt& b) {
 }
 BigInt::~BigInt()= default;
 
+BigInt& BigInt::operator=(BigInt&&) noexcept{
+    return *this;
+}
+
+BigInt& BigInt::operator=(const BigInt& b){
+    return *this;
+};
+
+BigInt::operator std::string() const{
+    return decimal_representation();
+}
+
 size_t BigInt::size() const {
     return sizeof(is_positive) + abs_decimal_representation.length() + abs_binary_compact_representation.length();
 }
-std::string BigInt::decimal_representation() {
+std::string BigInt::decimal_representation() const{
     std::string result = abs_decimal_representation;
 
     if (!is_positive){
@@ -95,8 +109,17 @@ std::string BigInt::decimal_representation() {
     return result;
 }
 
-std::ostream& operator<<(std::ostream& out, const BigInt& b);
+std::ostream& operator<<(std::ostream& out, const BigInt &b){
     out << b.decimal_representation();
 
     return out;
+}
+std::istream& operator>>(std::istream& in, BigInt& b){
+    std::string in_str;
+
+    in >> in_str;
+
+    b = BigInt(in_str);
+
+    return in;
 }

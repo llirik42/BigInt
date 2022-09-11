@@ -16,7 +16,7 @@ public:
     ~BigInt();
 
     BigInt(BigInt&&);
-    BigInt& operator=(BigInt&&);
+    BigInt& operator=(BigInt&&) noexcept ;
 
     BigInt& operator=(const BigInt&);
 
@@ -47,11 +47,11 @@ public:
     bool operator>=(const BigInt&) const;
 
     operator int() const;
-    operator std::string() const;
+    explicit operator std::string() const;
 
     [[nodiscard]] size_t size() const;
 
-    [[nodiscard]] std::string decimal_representation();
+    [[nodiscard]] std::string decimal_representation() const;
 };
 
 BigInt operator+(const BigInt&, const BigInt&);
@@ -64,5 +64,5 @@ BigInt operator&(const BigInt&, const BigInt&);
 BigInt operator|(const BigInt&, const BigInt&);
 
 
-std::ostream& operator<<(std::ostream&, BigInt);
+std::ostream& operator<<(std::ostream&, const BigInt&);
 std::istream& operator>>(std::istream&, BigInt&);
