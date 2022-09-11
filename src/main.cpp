@@ -1,8 +1,14 @@
 #include <iostream>
 #include <cmath>
 
-#define BLOCK_SIZE 256 // bits
-#define GET_BIT_8(N, I) ((1 << (I) & (N)) >> (I))
+typedef unsigned char Byte;
+
+#define SIZE_OF_BYTE 8
+
+// 0 ... 7
+#define GET_BIT_8(N, I) ((1 << (SIZE_OF_BYTE - (I) - 1) & (N)) >> (SIZE_OF_BYTE - (I) - 1))
+#define SET_BIT_8(N, I, V) N = (V) ? ((1 << (SIZE_OF_BYTE - (I) - 1)) | (N)) : (~(1 << (SIZE_OF_BYTE - (I) - 1)) & (N));
+
 
 unsigned int ceil_log(unsigned int base, unsigned int number){
     if (!number){
@@ -18,16 +24,19 @@ unsigned int ceil_log(unsigned int base, unsigned int number){
 
     return result;
 }
-
-std::string uint_to_str(unsigned int number){
-    if (!number){
-        return "0";
+unsigned int ceil_div(unsigned a, unsigned b){
+    if (b == 0){
+        return 0;
     }
 
-    std::string result;
-    while (number){
-        result.insert(0, 1, (char)(number % 10 + '0'));
-        number /= 10;
+    unsigned int result = 0;
+    while (a){
+        result++;
+        if (a < b){
+            break;
+        }
+
+        a -= b;
     }
 
     return result;
@@ -61,50 +70,68 @@ class BigInt {
 private:
     bool is_positive;
 
-    std::string abs_decimal_representation;
+    unsigned long long decimal_digits_count;
+    unsigned long long binary_digits_count;
 
-    unsigned char* blocks;
-    unsigned long long blocks_count;
+    Byte* abs_decimal_representation;
+    Byte* abs_binary_compact_representation;
 public:
     BigInt(){
         is_positive = true;
 
-        abs_decimal_representation = "0";
+        decimal_digits_count = 1;
+        binary_digits_count = 1;
 
-        blocks_count = 1;
+        abs_decimal_representation = new Byte[1];
+        abs_binary_compact_representation = new Byte[1];
 
-        blocks = new unsigned char[1];
-        blocks[0] = 0;
+        abs_decimal_representation[0] = 0;
+        abs_binary_compact_representation[0] = 0;
     }
     explicit BigInt(int number){
         is_positive = (number >= 0);
 
-        unsigned int abs_number = abs(number);
+        const unsigned int abs_number = abs(number);
 
-        blocks_count = ceil_log(BLOCK_SIZE, abs_number);
+        decimal_digits_count = ceil_log(10, abs_number);
+        binary_digits_count = ceil_log(2, abs_number);
 
-        blocks = new unsigned char[blocks_count];
+        const unsigned int binary_blocks_count = ceil_div(binary_digits_count, 8); // log(256, x) = log(2, x) * 8
 
-        for (unsigned int i = blocks_count; i > 0; i--){
-            blocks[i - 1] = abs_number % BLOCK_SIZE;
-            abs_number /= BLOCK_SIZE;
+        abs_decimal_representation = new Byte[decimal_digits_count];
+        abs_binary_compact_representation = new Byte[binary_blocks_count];
+
+        unsigned int tmp1 = abs_number;
+        for (unsigned int i = decimal_digits_count; i > 0; i--){
+            abs_decimal_representation[i - 1] = tmp1 % 10;
+            tmp1 /= 10;
         }
 
-        abs_decimal_representation = uint_to_str(abs(number));
+        unsigned int tmp2 = abs_number;
+        for (unsigned int i = binary_blocks_count; i > 0; i--){
+            abs_binary_compact_representation[i - 1] = tmp2 % 256;
+            tmp2 /= 256;
+        }
     }
     BigInt(std::string str){
         if (!is_numerical(str)){
             throw std::invalid_argument("String isn't numerical");
         }
 
+        is_positive = str[0] != '-';
+
+        //abs_decimal_representation = str;
+        //if (str[0] == '-'){
+          //  abs_decimal_representation.erase(0, 1);
+        //}
 
 
 
-        char a = str[0];
     }
     BigInt(const BigInt&);
     ~BigInt(){
-        delete blocks;
+        delete abs_decimal_representation;
+        delete abs_binary_compact_representation;
     }
 
     BigInt(BigInt&&);
@@ -143,11 +170,11 @@ public:
     operator std::string() const;
 
     [[nodiscard]] size_t size() const{
-        return sizeof(is_positive) + abs_decimal_representation.length() + sizeof(blocks_count) + blocks_count;
+        //return sizeof(is_positive) + abs_decimal_representation.length();
     }
 
     [[nodiscard]] std::string decimal_representation() const{
-        return is_positive ? abs_decimal_representation : '-' + abs_decimal_representation;
+        //return is_positive ? abs_decimal_representation : '-' + abs_decimal_representation;
     }
 };
 
@@ -170,14 +197,5 @@ std::istream& operator>>(std::istream& o, BigInt& i);
 
 
 int main() {
-    BigInt c = BigInt("01");
-
-    //std::cout << is_numerical("");
-
-
-    //BigInt b = BigInt("-12345678901234567890");
-
-    //std::cout << b;
-
     return 0;
 }
