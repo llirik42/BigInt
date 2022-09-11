@@ -1,5 +1,7 @@
 #include <iostream>
 #include <cmath>
+#include <cstdlib>
+#include "string_operations.h"
 
 typedef unsigned char Byte;
 
@@ -124,6 +126,13 @@ public:
 
         is_positive = str[0] != '-';
 
+        decimal_digits_count = str.length();
+
+
+
+
+        //decimal_digits_count
+
         //abs_decimal_representation = str;
         //if (str[0] == '-'){
           //  abs_decimal_representation.erase(0, 1);
@@ -202,9 +211,29 @@ std::istream& operator>>(std::istream& o, BigInt& i);
 
 
 int main() {
-    BigInt a = BigInt(312321321);
+    char* a = new char[3];
+    a[0] = '1';
+    a[1] = '2';
+    a[2] = '3';
 
-    std::cout << a.size();
+    ltoa(1024, a, 2);
+
+    std::cout << a;
+
+    delete[] a;
+
+
+    /*
+    for (unsigned int a = 0; a < 16; a++){
+        for (unsigned int b = 0; b < 16; b++){
+            std::cout << (a + b - 15) << " " << (a & b) << "\n";
+        }
+    }*/
+
+
+    //BigInt a = BigInt(312321321);
+
+    //std::cout << a.size();
 
     return 0;
 }
