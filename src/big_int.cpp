@@ -1,5 +1,4 @@
 #include "big_int.h"
-#include "string_operations.h"
 #include "utils.h"
 
 bool is_str_numerical(std::string str){
@@ -68,8 +67,6 @@ BigInt::BigInt(std::string str) {
         for (unsigned char i = 0; i < SIZE_OF_BYTE; i++){
             std::string r;
 
-            str_division(str, "2", str, r);
-
             current_block_value += current_m * CHAR_TO_DIGIT(r[0]);
             current_m *= 2;
         }
@@ -91,7 +88,7 @@ BigInt& BigInt::operator=(BigInt&&) noexcept{
 
 BigInt& BigInt::operator=(const BigInt& b){
     return *this;
-};
+}
 
 BigInt::operator std::string() const{
     return decimal_representation();
