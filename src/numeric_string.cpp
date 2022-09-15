@@ -211,7 +211,8 @@ NumericString::operator unsigned long long() const{
     return std::strtoull(this->string.c_str(), nullptr, 10);
 }
 NumericString::operator std::string() const{
-    return this->string;
+    std::string result = this->string;
+    return result;
 }
 
 unsigned int ceil_log_numerical_str(unsigned long long base, const NumericString& s){
