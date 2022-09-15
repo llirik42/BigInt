@@ -1,5 +1,3 @@
-#pragma once
-
 #include <iostream>
 
 typedef unsigned char Byte;

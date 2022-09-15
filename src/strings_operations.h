@@ -1,5 +1,3 @@
-#pragma once
-
 #include <iostream>
 
 bool compare_strings(std::string s1, std::string s2);

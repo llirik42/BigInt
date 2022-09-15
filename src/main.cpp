@@ -1,12 +1,21 @@
 #include <iostream>
-#include "byte_vector.h"
+#include "numeric_string.h"
+
+//#include "byte_vector.h"
 
 int main() {
+    NumericString s1 = NumericString("123");
+    NumericString s2 = NumericString("5");
+
+    std::cout << s1 * s2;
+
+    //NumericString s3 = s1 + s2;
+
     //ByteVector a = ByteVector("0");
     //ByteVector b = ByteVector("1");
     //ByteVector c = ByteVector("2");
     //ByteVector d = ByteVector("2570");
-    ByteVector e = ByteVector("111111111111111111111");
+    //ByteVector e = ByteVector("111111111111111111111");
     //ByteVector f = ByteVector("256");
     //ByteVector g = ByteVector("65536");
     //ByteVector h = ByteVector("1111111111111111111111111111111111111111");
@@ -18,7 +27,7 @@ int main() {
     //std::cout << std::string(b) << "\n";
     //std::cout << std::string(c) << "\n";
     //std::cout << std::string(d) << "\n";
-    std::cout << std::string(e) << "\n";
+    //std::cout << std::string(e) << "\n";
     //std::cout << std::string(f) << "\n";
     //std::cout << std::string(g) << "\n";
     //std::cout << std::string(h) << "\n";

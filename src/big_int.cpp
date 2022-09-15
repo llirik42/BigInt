@@ -106,6 +106,10 @@ std::string BigInt::decimal_representation() const{
     return result;
 }
 
+bool BigInt::operator==(const BigInt& b) const{
+    return false;
+}
+
 std::ostream& operator<<(std::ostream& out, const BigInt &b){
     out << b.decimal_representation();
 
@@ -120,3 +124,4 @@ std::istream& operator>>(std::istream& in, BigInt& b){
 
     return in;
 }
+
