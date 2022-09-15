@@ -12,24 +12,16 @@ void NumericString::reduce_zeroes(){
 unsigned int NumericString::length() const{
     return this->string.length();
 }
+bool NumericString::is_zero() const{
+    return this->string == "0";
+}
 
 NumericString::NumericString()= default;
-NumericString::NumericString(char c){
-    this->string.insert(0, 1, c);
-}
 NumericString::NumericString(unsigned long long n){
     this->string = std::to_string(n);
 }
 NumericString::NumericString(const std::string& s){
     this->string = s;
-
-    this->reduce_zeroes();
-}
-
-NumericString& NumericString::operator+=(const char operand){
-    *this = (*this) + NumericString(operand);
-
-    return *this;
 }
 
 NumericString NumericString::operator+(const NumericString& operand) const{
@@ -50,8 +42,8 @@ NumericString NumericString::operator+(const NumericString& operand) const{
 
     unsigned int carry = 0;
     for (unsigned int i = length; i > 0; i--){
-        const unsigned int current_digit1 = char_to_digit(this->string[i - 1]);
-        const unsigned int current_digit2 = char_to_digit(operand.string[i - 1]);
+        const unsigned int current_digit1 = char_to_digit(tmp1.string[i - 1]);
+        const unsigned int current_digit2 = char_to_digit(tmp2.string[i - 1]);
 
         const unsigned int current_sum = current_digit1 + current_digit2 + carry;
 
@@ -67,9 +59,15 @@ NumericString NumericString::operator+(const NumericString& operand) const{
     return NumericString(result);
 }
 NumericString NumericString::operator*(const NumericString& operand) const{
-    NumericString result = NumericString("0");
+    NumericString result;
 
-    if (operand.length() == 1){
+    const unsigned int operand_length = operand.length();
+
+    if (this->is_zero()){
+        return NumericString(0);
+    }
+
+    if (operand_length == 1){
         unsigned int carry = 0;
         const unsigned int length = this->length();
 
@@ -79,7 +77,7 @@ NumericString NumericString::operator*(const NumericString& operand) const{
 
             const unsigned int product = current_digit1 * operand_only_digit + carry;
 
-            result.string = digit_to_char(product % 10) + result;
+            result.string = digit_to_char(product % 10) + result.string;
 
             carry = product / 10;
         }
@@ -87,22 +85,19 @@ NumericString NumericString::operator*(const NumericString& operand) const{
         if (carry){
             result.string.insert(0, 1, digit_to_char(carry));
         }
+
+        result.reduce_zeroes();
     }
     else{
-        unsigned long long index = 0;
-        while(operand != "0"){
-            NumericString current_product = (*this) * NumericString(operand.string.back());
-            current_product.string.append(index, 0);
+        result = NumericString(0);
 
-            result = result + current_product;;
+        for (unsigned int i = operand_length; i > 0; i--){
+            NumericString current_digit = NumericString(char_to_digit(operand.string[i - 1]));
 
-            //NumericString q
+            NumericString current_product = (*this) * current_digit;
+            current_product.string.append(operand_length - i, '0');
 
-            //std::string tmp1;
-            unsigned int tmp2;
-            //divide_string_by_number(a, 10, tmp1, tmp2);
-
-            //a = tmp1;
+            result += current_product;
         }
     }
 
@@ -112,7 +107,7 @@ NumericString NumericString::operator/(unsigned long long operand) const{
     NumericString tmp = NumericString(operand);
 
     if (tmp > *this){
-        return NumericString("0");
+        return NumericString(0);
     }
 
     const unsigned int length = this->length();
@@ -180,6 +175,15 @@ unsigned long long NumericString::operator%(unsigned long long operand) const{
     return r;
 }
 
+NumericString& NumericString::operator+=(const NumericString& operand){
+    (*this) = (*this) + operand;
+    return (*this);
+}
+NumericString& NumericString::operator/=(const unsigned long long operand){
+    (*this) = (*this) / operand;
+    return (*this);
+}
+
 bool NumericString::operator!=(const std::string& s) const{
     return this->string != s;
 }
@@ -206,12 +210,23 @@ bool NumericString::operator>(const NumericString& operand) const{
 NumericString::operator unsigned long long() const{
     return std::strtoull(this->string.c_str(), nullptr, 10);
 }
-
-std::string NumericString::representation() const{
+NumericString::operator std::string() const{
     return this->string;
 }
 
-std::ostream& operator<<(std::ostream& out, const NumericString& s){
-    out << s.representation();
-    return out;
+unsigned int ceil_log_numerical_str(unsigned long long base, const NumericString& s){
+    if (s.is_zero()){
+        return 1;
+    }
+
+    unsigned int result = 0;
+
+    NumericString tmp = s;
+    while (!tmp.is_zero()){
+        result++;
+
+        tmp /= base;
+    }
+
+    return result;
 }

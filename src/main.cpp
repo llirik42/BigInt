@@ -4,10 +4,9 @@
 //#include "byte_vector.h"
 
 int main() {
-    NumericString s1 = NumericString("123");
-    NumericString s2 = NumericString("5");
+    NumericString s = NumericString("32132132132132132132132193820130291");
 
-    std::cout << s1 * s2;
+    std::cout << ceil_log_numerical_str(256, s);
 
     //NumericString s3 = s1 + s2;
 

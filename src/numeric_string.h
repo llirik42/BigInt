@@ -9,23 +9,24 @@ private:
     [[nodiscard]] unsigned int length() const;
 public:
     NumericString();
-    explicit NumericString(char);
     explicit NumericString(unsigned long long);
     explicit NumericString(const std::string&);
-
-    NumericString& operator+=(const char);
 
     NumericString operator+(const NumericString&) const;
     NumericString operator*(const NumericString&) const;
     NumericString operator/(unsigned long long) const;
     unsigned long long operator%(unsigned long long) const;
 
+    NumericString& operator+=(const NumericString&);
+    NumericString& operator/=(unsigned long long);
+
     bool operator!=(const std::string&) const;
     bool operator>(const NumericString&) const;
 
     explicit operator unsigned long long() const;
+    explicit operator std::string() const;
 
-    std::string representation() const;
+    [[nodiscard]] bool is_zero() const;
 };
 
-std::ostream& operator<<(std::ostream&, const NumericString&);
+unsigned int ceil_log_numerical_str(unsigned long long, const NumericString&);
