@@ -1,67 +1,173 @@
 #include "numeric_string.h"
 #include "utils.h"
+#include <climits>
 
-void NumericString::add_zero(){
-    this->string.insert(0, 1, '0');
-}
-void NumericString::reduce_zeroes(){
-    while(this->length() > 1 && this->string[0] == '0'){
-        this->string.erase(0, 1);
+inline const char* ULLONG_MAX_STR = "18446744073709551615";
+
+void copy_into_the_end(const char* from, unsigned int from_length, char* to, unsigned int to_length){
+    const unsigned int length = get_min(from_length, to_length);
+
+    for (unsigned int i = length; i > 0; i--){
+        to[to_length - (length - i) - 1] = from[from_length - (length - i) - 1];
     }
 }
-unsigned int NumericString::length() const{
-    return this->string.length();
+
+void NumericString::append(char c, unsigned int count){
+    char* tmp = new char[this->length + count];
+
+    for (unsigned int i = this->length; i > 0; i--){
+        tmp[i - 1] = this->string[i - 1];
+    }
+    for (unsigned int i = 0; i < count; i++){
+        tmp[i + this->length] = c;
+    }
+
+    delete[] this->string;
+    this->length += count;
+
+    this->string = new char[this->length];
+
+    copy_into_the_end(tmp, this->length, this->string, this->length);
+
+    delete[] tmp;
+
 }
-bool NumericString::is_zero() const{
-    return this->string == "0";
+void NumericString::insert_front(char c){
+    NumericString tmp = (*this);
+
+    delete[] this->string;
+
+    this->string = new char[++this->length];
+
+    copy_into_the_end(tmp.string, this->length - 1, this->string, this->length);
+
+    this->string[0] = c;
+}
+void NumericString::add_zero(){
+    this->insert_front('0');
+}
+void NumericString::erase_front(){
+    NumericString tmp = (*this);
+
+    delete[] this->string;
+
+    this->string = new char[--this->length];
+
+    copy_into_the_end(tmp.string, this->length, this->string, this->length);
+}
+void NumericString::reduce_zeroes(){
+    while(this->get_length() > 1 && this->string[0] == '0'){
+        this->erase_front();
+    }
 }
 
-NumericString::NumericString()= default;
+NumericString::NumericString(){
+    this->string = nullptr;
+    this->length = 0;
+}
 NumericString::NumericString(unsigned long long n){
-    this->string = std::to_string(n);
+    if (!n){
+        this->length = 1;
+        this->string = new char[1];
+        this->string[0] = '0';
+        return;
+    }
+
+    this->length = 0;
+    this->string = nullptr;
+
+    while(n){
+        this->insert_front(digit_to_char(n % 10));
+        n /= 10;
+    }
 }
 NumericString::NumericString(const std::string& s){
-    this->string = s;
+    this->length = 0;
+    this->string = nullptr;
+
+    for (unsigned int i = s.length(); i > 0; i--){
+        this->insert_front(s[i - 1]);
+    }
+}
+NumericString::NumericString(NumericString&& s) noexcept{
+    this->length = s.length;
+    this->string = s.string;
+    s.string = nullptr;
+}
+NumericString::NumericString(const NumericString &s){
+    this->length = s.length;
+
+    this->string = this->length ? new char[this->length] : nullptr;
+
+    if (this->length){
+        copy_into_the_end(s.string, s.length, this->string, this->length);
+    }
+}
+NumericString::~NumericString(){
+    delete[] this->string;
+}
+
+NumericString& NumericString::operator=(const NumericString& s){
+    if (&s == this){
+        return (*this);
+    }
+
+    this->length = 0;
+    delete[] this->string;
+    this->string = nullptr;
+
+    for (unsigned int i = s.length; i > 0; i--){
+        this->insert_front(s.string[i - 1]);
+    }
+
+    return (*this);
+}
+NumericString& NumericString::operator=(NumericString&& s) noexcept {
+    this->length = s.length;
+    this->string = s.string;
+
+    s.string = nullptr;
+
+    return (*this);
 }
 
 NumericString NumericString::operator+(const NumericString& operand) const{
-    const unsigned int length = get_max(this->length(), operand.length());
+    const unsigned int max_operand_length = get_max(this->get_length(), operand.get_length());
 
-    std::string result;
-    result.resize(length);
+    NumericString result = NumericString();
 
-    NumericString tmp1 = *this;
-    NumericString tmp2 = operand;
+    NumericString tmp1; tmp1 = (*this);
+    NumericString tmp2; tmp2 = operand;
 
-    while(tmp1.length() < length){
+    while(tmp1.get_length() < max_operand_length){
         tmp1.add_zero();
     }
-    while(tmp2.length() < length){
+    while(tmp2.get_length() < max_operand_length){
         tmp2.add_zero();
     }
 
     unsigned int carry = 0;
-    for (unsigned int i = length; i > 0; i--){
+    for (unsigned int i = max_operand_length; i > 0; i--){
         const unsigned int current_digit1 = char_to_digit(tmp1.string[i - 1]);
         const unsigned int current_digit2 = char_to_digit(tmp2.string[i - 1]);
 
         const unsigned int current_sum = current_digit1 + current_digit2 + carry;
 
-        result[i - 1] = digit_to_char(current_sum % 10);
+        result.insert_front(digit_to_char(current_sum % 10));
 
         carry = current_sum / 10;
     }
 
     if (carry){
-        result.insert(0, 1, '1');
+        result.insert_front('1');
     }
 
-    return NumericString(result);
+    return result;
 }
 NumericString NumericString::operator*(const NumericString& operand) const{
-    NumericString result;
+    NumericString result = NumericString();
 
-    const unsigned int operand_length = operand.length();
+    const unsigned int operand_length = operand.get_length();
 
     if (this->is_zero()){
         return NumericString(0);
@@ -69,21 +175,20 @@ NumericString NumericString::operator*(const NumericString& operand) const{
 
     if (operand_length == 1){
         unsigned int carry = 0;
-        const unsigned int length = this->length();
 
         const unsigned int operand_only_digit = char_to_digit(operand.string[0]);
-        for (unsigned int i = length; i > 0; i--){
+        for (unsigned int i = this->get_length(); i > 0; i--){
             const unsigned int current_digit1 = char_to_digit(this->string[i - 1]);
 
             const unsigned int product = current_digit1 * operand_only_digit + carry;
 
-            result.string = digit_to_char(product % 10) + result.string;
+            result.insert_front(digit_to_char(product % 10));
 
             carry = product / 10;
         }
 
         if (carry){
-            result.string.insert(0, 1, digit_to_char(carry));
+            result.insert_front(digit_to_char(carry));
         }
 
         result.reduce_zeroes();
@@ -95,7 +200,8 @@ NumericString NumericString::operator*(const NumericString& operand) const{
             NumericString current_digit = NumericString(char_to_digit(operand.string[i - 1]));
 
             NumericString current_product = (*this) * current_digit;
-            current_product.string.append(operand_length - i, '0');
+
+            current_product.append('0', operand_length - i);
 
             result += current_product;
         }
@@ -110,35 +216,35 @@ NumericString NumericString::operator/(unsigned long long operand) const{
         return NumericString(0);
     }
 
-    const unsigned int length = this->length();
     unsigned long long r = 0;
     unsigned int current_index = 0;
-    std::string result;
+
+    NumericString result;
 
     while(r < operand){
         r = r * 10 + char_to_digit(this->string[current_index++]);
     }
 
     while(true){
-        result.append(1, digit_to_char(r / operand));
+        result.append(digit_to_char(r / operand), 1);
         r %= operand;
 
-        if (current_index == length){
+        if (current_index == this->length){
             break;
         }
 
         r = r * 10 + char_to_digit(this->string[current_index++]);
 
         while(r < operand){
-            if (current_index == length){
+            if (current_index == this->length){
                 break;
             }
-            result.append(1, '0');
+            result.append('0', 1);
             r = r * 10 + char_to_digit(this->string[current_index++]);
         }
     }
 
-    return NumericString(result);
+    return result;
 }
 unsigned long long NumericString::operator%(unsigned long long operand) const{
     NumericString tmp = NumericString(operand);
@@ -147,7 +253,6 @@ unsigned long long NumericString::operator%(unsigned long long operand) const{
         return (unsigned long long)(*this);
     }
 
-    const unsigned int length = this->length();
     unsigned long long r = 0;
     unsigned int current_index = 0;
 
@@ -158,14 +263,14 @@ unsigned long long NumericString::operator%(unsigned long long operand) const{
     while(true){
         r %= operand;
 
-        if (current_index == length){
+        if (current_index == this->length){
             break;
         }
 
         r = r * 10 + char_to_digit(this->string[current_index++]);
 
         while(r < operand){
-            if (current_index == length){
+            if (current_index == this->length){
                 break;
             }
             r = r * 10 + char_to_digit(this->string[current_index++]);
@@ -184,12 +289,41 @@ NumericString& NumericString::operator/=(const unsigned long long operand){
     return (*this);
 }
 
+bool NumericString::operator==(const std::string& s) const{
+    if (this->length != s.length()){
+        return false;
+    }
+
+    for (unsigned int i = 0; i < s.length(); i++){
+        if (this->string[i] != s[i]){
+            return false;
+        }
+    }
+
+    return true;
+}
+bool NumericString::operator==(const NumericString& s) const{
+    if (this->length != s.length){
+        return false;
+    }
+
+    for (unsigned int i = 0; i < s.length; i++){
+        if (this->string[i] != s.string[i]){
+            return false;
+        }
+    }
+
+    return true;
+}
 bool NumericString::operator!=(const std::string& s) const{
     return this->string != s;
 }
+bool NumericString::operator!=(const NumericString& s) const{
+    return !(s == (*this));
+}
 bool NumericString::operator>(const NumericString& operand) const{
-    const unsigned int length1 = this->length();
-    const unsigned int length2 = operand.length();
+    const unsigned int length1 = this->get_length();
+    const unsigned int length2 = operand.get_length();
 
     if (length1 != length2){
         return length1 > length2;
@@ -208,11 +342,36 @@ bool NumericString::operator>(const NumericString& operand) const{
 }
 
 NumericString::operator unsigned long long() const{
-    return std::strtoull(this->string.c_str(), nullptr, 10);
+    const NumericString ullong_max_numeric = NumericString(ULLONG_MAX_STR);
+
+    if ((*this) > ullong_max_numeric){
+        return ULLONG_MAX;
+    }
+
+    unsigned long long result = 0;
+
+    unsigned long current_m = 1;
+    for (unsigned int i = this->length; i > 0; i--, current_m *= 10){
+        result += current_m * char_to_digit(this->string[i - 1]);
+    }
+
+    return result;
 }
 NumericString::operator std::string() const{
-    std::string result = this->string;
+    std::string result;
+
+    for (unsigned int i = 0; i < this->length; i++){
+        result.append(1, this->string[i]);
+    }
+
     return result;
+}
+
+unsigned int NumericString::get_length() const{
+    return this->length;
+}
+bool NumericString::is_zero() const{
+    return this->length == 1 && this->string[0] == '0';
 }
 
 unsigned int ceil_log_numerical_str(unsigned long long base, const NumericString& s){
