@@ -1,37 +1,35 @@
 #include <iostream>
+#include "smart_vector.h"
 #include "numeric_string.h"
+#include <cassert>
 
-//#include "byte_vector.h"
+void test_numeric_string(){
+    assert(NumericString(0) == "0");
+    assert(NumericString("0") == "0");
+    assert(NumericString(123) == "123");
+    assert(NumericString("123") == "123");
+    assert(NumericString("1111111111111111111111111111111") == "1111111111111111111111111111111");
+    assert(NumericString(42) == NumericString("42"));
+    assert(NumericString(0) + NumericString(111) == NumericString(111));
+    assert(NumericString(999) + NumericString(1) == NumericString(1000));
+    assert(NumericString(1) * NumericString(42) == NumericString(42));
+    assert(NumericString(0) * NumericString(1) == NumericString(0));
+    assert(NumericString(0) * NumericString(0) == NumericString(0));
+    assert(NumericString(1) * NumericString(1) == "1");
+    assert(NumericString(11) * NumericString(12) == "132");
+    assert(NumericString(0) / 42 == "0");
+    assert(NumericString(42) / 5 == "8");
+    assert(NumericString(0) % 5 == 0);
+    assert(NumericString(0) % 42 == 0);
+    assert(NumericString(1234567890).length() == 10);
+    assert(NumericString(123456798) > NumericString(123456789));
+    assert((unsigned long long)NumericString(123456789) == 123456789);
+    assert(std::string(NumericString(123456789)) == "123456789");
+    std::cout << "All tests of NumericString passed";
+}
 
 int main() {
-    NumericString s = NumericString("32132132132132132132132193820130291");
-
-    std::cout << ceil_log_numerical_str(256, s);
-
-    //NumericString s3 = s1 + s2;
-
-    //ByteVector a = ByteVector("0");
-    //ByteVector b = ByteVector("1");
-    //ByteVector c = ByteVector("2");
-    //ByteVector d = ByteVector("2570");
-    //ByteVector e = ByteVector("111111111111111111111");
-    //ByteVector f = ByteVector("256");
-    //ByteVector g = ByteVector("65536");
-    //ByteVector h = ByteVector("1111111111111111111111111111111111111111");
-    //ByteVector i = ByteVector("111111111111111111111111111111111111111111111111111111111111");
-    //ByteVector j = ByteVector("1111111111111111111111111111111111111111111111111111111111111111111111111111111");
-
-
-    //std::cout << std::string(a) << "\n";
-    //std::cout << std::string(b) << "\n";
-    //std::cout << std::string(c) << "\n";
-    //std::cout << std::string(d) << "\n";
-    //std::cout << std::string(e) << "\n";
-    //std::cout << std::string(f) << "\n";
-    //std::cout << std::string(g) << "\n";
-    //std::cout << std::string(h) << "\n";
-    //std::cout << std::string(i) << "\n";
-    //std::cout << std::string(j) << "\n";
+    test_numeric_string();
 
     return 0;
 }
