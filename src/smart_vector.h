@@ -2,17 +2,49 @@
 
 typedef unsigned int Block;
 
-class ByteVector{
+class SmartVector{
 private:
     Block* data;
     unsigned int length;
+
+    void extend_and_copy(unsigned int);
+    void append_zero_blocks(unsigned int);
+    void reduce_first_block();
+    void reduce_first_zero_blocks();
 public:
-    ByteVector();
-    explicit ByteVector(unsigned long long);
-    explicit ByteVector(const std::string&);
-    ~ByteVector();
+    SmartVector();
+    explicit SmartVector(unsigned long long);
+    explicit SmartVector(const std::string&);
+    SmartVector(SmartVector&&) noexcept;
+    SmartVector(const SmartVector&);
+    ~SmartVector();
+
+    SmartVector& operator=(SmartVector&&) noexcept;
+    SmartVector& operator=(const SmartVector&);
+
+    SmartVector& operator+=(const SmartVector&);
+    SmartVector& operator*=(const SmartVector&);
+    SmartVector& operator-=(const SmartVector&);
+    SmartVector& operator/=(const SmartVector&);
+    SmartVector& operator%=(const SmartVector&);
+    SmartVector& operator^=(const SmartVector&);
+    SmartVector& operator&=(const SmartVector&);
+    SmartVector& operator|=(const SmartVector&);
+
+    bool operator==(const SmartVector&);
+    bool operator!=(const SmartVector&);
 
     explicit operator std::string() const;
 };
 
-std::ostream& operator<<(std::ostream&, const ByteVector&);
+SmartVector operator+(const SmartVector&, const SmartVector&);
+SmartVector operator-(const SmartVector&, const SmartVector&);
+SmartVector operator*(const SmartVector&, const SmartVector&);
+SmartVector operator/(const SmartVector&, const SmartVector&);
+SmartVector operator%(const SmartVector&, const SmartVector&);
+SmartVector operator^(const SmartVector&, const SmartVector&);
+SmartVector operator&(const SmartVector&, const SmartVector&);
+SmartVector operator|(const SmartVector&, const SmartVector&);
+
+
+std::ostream& operator<<(std::ostream&, const SmartVector&);
