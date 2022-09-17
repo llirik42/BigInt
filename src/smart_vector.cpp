@@ -2,7 +2,7 @@
 #include "numeric_string.h"
 #include "utils.h"
 
-inline const unsigned long long BASE = 4294967296;
+inline const unsigned long long BASE = 4294967296; // must be power of 2 for binary operations
 
 SmartVector::SmartVector(){
     this->length = 1;
