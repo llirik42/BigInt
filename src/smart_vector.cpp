@@ -437,6 +437,10 @@ SmartVector::operator std::string() const{
     return std::string(result);
 }
 
+size_t SmartVector::size() const{
+    return sizeof(this->data) + sizeof(this->data) + length * sizeof(Block);
+}
+
 SmartVector operator+(const SmartVector& v1, const SmartVector& v2){
     SmartVector result = SmartVector(0);
 

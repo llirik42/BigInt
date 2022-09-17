@@ -38,6 +38,8 @@ public:
     bool operator>=(const SmartVector&) const;
 
     explicit operator std::string() const;
+
+    [[nodiscard]] size_t size() const;
 };
 
 SmartVector operator+(const SmartVector&, const SmartVector&);
