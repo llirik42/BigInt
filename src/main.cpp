@@ -30,7 +30,7 @@ void test_numeric_string(){
     assert((unsigned long long)NumericString(123456789) == 123456789);
     assert((unsigned long long)NumericString("11111111111111111111111111111111111111111111") == ULLONG_MAX);
     assert(std::string(NumericString(123456789)) == "123456789");
-    std::cout << "All tests of NumericString passed\n";
+    std::cout << "All tests of NumericString passed\n\n";
 }
 void test_smart_vector(){
     assert(std::string(SmartVector()) == "0");
@@ -63,32 +63,24 @@ void test_smart_vector(){
     assert(SmartVector(123456789) - SmartVector(123456) == SmartVector(123333333));
     assert(SmartVector("1111111111111111111111111112") - SmartVector("1111111111111111111111111111") == SmartVector(1));
     assert(SmartVector("99999999999999999999999999999999") - SmartVector("11111111111111111111111111111111") == SmartVector("88888888888888888888888888888888"));
-    assert(SmartVector(123) % SmartVector(1) == SmartVector(123));
     assert(SmartVector(123) % SmartVector(10) == SmartVector(3));
-    assert(SmartVector(123) / SmartVector(10) == SmartVector(12));
     assert(SmartVector(0) % SmartVector(5) == SmartVector(0));
+    assert(SmartVector(10) % SmartVector(11) == SmartVector(10));
+    assert(SmartVector(20) % SmartVector(10) == SmartVector(0));
+    assert(SmartVector("111111111") % SmartVector(42) == SmartVector(27));
+    assert(SmartVector(123) / SmartVector(1) == SmartVector(123));
+    assert(SmartVector(123) / SmartVector(10) == SmartVector(12));
     assert(SmartVector(0) / SmartVector(111) == SmartVector(0));
-    assert(SmartVector("11111111111111111111111111111111111111111111111") / SmartVector(42) == SmartVector("264550264550264550264550264550264550264550264"));
-    assert(SmartVector("11111111111111111111111111111111111111111111111") % SmartVector(42) == SmartVector(23));
-    std::cout << "All tests of SmartVector passed\n";
+    assert(SmartVector(20) / SmartVector(10) == SmartVector(2));
+    assert(SmartVector(5) / SmartVector(42) == SmartVector(0));
+    assert(SmartVector("111111111") / SmartVector(42) == SmartVector("2645502"));
+    std::cout << "All tests of SmartVector passed\n\n";
 }
 
 
-
 int main() {
+    test_numeric_string();
     test_smart_vector();
-
-
-    //SmartVector v1 = SmartVector("111111111111111111111");
-    //SmartVector v2 = SmartVector("2");
-
-    //std::cout << v1 * v2;
-
-    //test_numeric_string();
-
-    //SmartVector v1 = SmartVector("11111111111111111111111111111111111111111111111");
-
-    //std::cout << v1;
 
     return 0;
 }
