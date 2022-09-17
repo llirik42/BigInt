@@ -31,8 +31,10 @@ public:
     SmartVector& operator&=(const SmartVector&);
     SmartVector& operator|=(const SmartVector&);
 
-    bool operator==(const SmartVector&);
-    bool operator!=(const SmartVector&);
+    bool operator==(const SmartVector&) const;
+    bool operator!=(const SmartVector&) const;
+    bool operator>(const SmartVector&) const;
+    bool operator>=(const SmartVector&) const;
 
     explicit operator std::string() const;
 };

@@ -194,10 +194,81 @@ SmartVector& SmartVector::operator-=(const SmartVector& v){
     return *this;
 }
 SmartVector& SmartVector::operator/=(const SmartVector& v){
+    if (v > *this){
+        *this = SmartVector(0);
+        return *this;
+    }
 
+    SmartVector r = SmartVector(0);
+
+    unsigned int current_index = 0;
+
+    SmartVector result;
+
+    while(v > r){
+        r = r * SmartVector(BASE) + SmartVector(this->data[current_index++]); //TODO SmartVector(BASE)
+    }
+    while(true){
+        unsigned long long current_digit = 0;
+        while(r >= v){
+            r -= v;
+            current_digit++;
+        }
+
+        result = result * SmartVector(BASE) + SmartVector(current_digit);
+
+        if (current_index == this->length){
+            break;
+        }
+
+        r = r * SmartVector(BASE) + SmartVector(this->data[current_index++]); //TODO SmartVector(BASE)
+
+        while(v > r){
+            if (current_index == this->length){
+                break;
+            }
+            result.append_zero_blocks(1);
+            r = r * SmartVector(BASE) + SmartVector(this->data[current_index++]); //TODO SmartVector(BASE)
+        }
+    }
+
+    *this = result;
+    return *this;
 }
 SmartVector& SmartVector::operator%=(const SmartVector& v){
+    if (v > *this){
+        return *this;
+    }
 
+    SmartVector result = SmartVector(0);
+
+    unsigned int current_index = 0;
+
+    while(v > result){
+        result = result * SmartVector(BASE) + SmartVector(this->data[current_index++]); //TODO SmartVector(BASE)
+    }
+
+    while(true){
+        while(result >= v){
+            result -= v;
+        }
+
+        if (current_index == this->length){
+            break;
+        }
+
+        result = result * SmartVector(BASE) + SmartVector(this->data[current_index++]); //TODO SmartVector(BASE)
+
+        while(v > result){
+            if (current_index == this->length){
+                break;
+            }
+            result = result * SmartVector(BASE) + SmartVector(this->data[current_index++]); //TODO SmartVector(BASE)
+        }
+    }
+
+    *this = result;
+    return *this;
 }
 SmartVector& SmartVector::operator^=(const SmartVector& v){
 
@@ -210,7 +281,7 @@ SmartVector& SmartVector::operator|=(const SmartVector& v){
 
 }
 
-bool SmartVector::operator==(const SmartVector& v){
+bool SmartVector::operator==(const SmartVector& v) const{
     if (this->length != v.length){
         return false;
     }
@@ -223,8 +294,23 @@ bool SmartVector::operator==(const SmartVector& v){
 
     return true;
 }
-bool SmartVector::operator!=(const SmartVector& v){
+bool SmartVector::operator!=(const SmartVector& v) const{
     return !(*this == v);
+}
+bool SmartVector::operator>(const SmartVector& v) const{
+    if (this->length != v.length){
+        return this->length > v.length;
+    }
+    for (unsigned int i = 0; i < v.length; i++){
+        if (this->data[i] != v.data[i]){
+            return this->data[i] > v.data[i];
+        }
+    }
+
+    return false;
+}
+bool SmartVector::operator>=(const SmartVector& v) const{
+    return *this == v || *this > v;
 }
 
 void SmartVector::extend_and_copy(unsigned int delta){
