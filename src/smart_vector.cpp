@@ -331,6 +331,18 @@ SmartVector& SmartVector::operator|=(const SmartVector& v){
     return *this;
 
 }
+SmartVector& SmartVector::operator~(){
+    SmartVector result = *this;
+
+    for (unsigned int i = this->length; i > 0; i--){
+        result.data[i] = ~(this->data[i]);
+    }
+
+    reduce_first_zero_blocks();
+
+    *this = result;
+    return (*this);
+}
 
 bool SmartVector::operator==(const SmartVector& v) const{
     if (this->length != v.length){

@@ -30,6 +30,7 @@ public:
     SmartVector& operator^=(const SmartVector&);
     SmartVector& operator&=(const SmartVector&);
     SmartVector& operator|=(const SmartVector&);
+    SmartVector& operator~();
 
     bool operator==(const SmartVector&) const;
     bool operator!=(const SmartVector&) const;
