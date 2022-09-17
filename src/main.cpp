@@ -1,6 +1,7 @@
 #include <iostream>
 #include "smart_vector.h"
 #include "numeric_string.h"
+#include "big_int.h"
 #include <cassert>
 #include <climits>
 #include "utils.h"
@@ -98,9 +99,12 @@ void test_is_numeric_string(){
 
 
 int main() {
-    test_numeric_string();
-    test_smart_vector();
-    test_is_numeric_string();
+    try{
+        BigInt a = BigInt("123g");
+    }
+    catch(std::invalid_argument& argument){
+        std::cout << argument.what() << "\n";
+    }
 
     return 0;
 }

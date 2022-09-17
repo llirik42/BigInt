@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 
 typedef unsigned int Block;
@@ -37,6 +39,7 @@ public:
     bool operator>(const SmartVector&) const;
     bool operator>=(const SmartVector&) const;
 
+    explicit operator int() const;
     explicit operator std::string() const;
 
     [[nodiscard]] size_t size() const;

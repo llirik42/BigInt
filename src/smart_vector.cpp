@@ -422,6 +422,14 @@ void SmartVector::reduce_first_zero_blocks(){
     }
 }
 
+SmartVector::operator int() const{
+    int result = 0;
+    for (unsigned int i = this->length; i > 0; i--){
+        result += int(this->data[i - 1]);
+    }
+
+    return result;
+}
 SmartVector::operator std::string() const{
     NumericString result = NumericString(0);
 

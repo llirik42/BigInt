@@ -1,41 +1,35 @@
 #include <iostream>
+#include "smart_vector.h"
 
 class BigInt{
 private:
     bool is_positive;
-
-    std::string abs_decimal_representation;
-    std::string abs_binary_compact_representation;
+    SmartVector vector;
 public:
     BigInt();
     explicit BigInt(int);
-    explicit BigInt(std::string);
+    explicit BigInt(const std::string&);
     BigInt(const BigInt&);
+    BigInt(BigInt&&) noexcept;
     ~BigInt();
 
-    BigInt(BigInt&&);
-    BigInt& operator=(BigInt&&) noexcept ;
-
     BigInt& operator=(const BigInt&);
-
-    BigInt operator~();
-
-    BigInt& operator++();
-    const BigInt operator++(int) const;
-    BigInt& operator--();
-    const BigInt operator--(int) const;
+    BigInt& operator=(BigInt&&) noexcept;
 
     BigInt& operator+=(const BigInt&);
     BigInt& operator*=(const BigInt&);
     BigInt& operator-=(const BigInt&);
     BigInt& operator/=(const BigInt&);
-    BigInt& operator^=(const BigInt&);
     BigInt& operator%=(const BigInt&);
-    BigInt& operator&=(const BigInt&);
-    BigInt& operator|=(const BigInt&);
 
     BigInt operator+() const;
-    BigInt operator-() const;
+    BigInt operator-();
+    BigInt& operator~();
+
+    BigInt& operator++();
+    const BigInt operator++(int);
+    BigInt& operator--();
+    const BigInt operator--(int);
 
     bool operator==(const BigInt&) const;
     bool operator!=(const BigInt&) const;
@@ -44,23 +38,24 @@ public:
     bool operator<=(const BigInt&) const;
     bool operator>=(const BigInt&) const;
 
-    operator int() const;
+    BigInt& operator^=(const BigInt&);
+    BigInt& operator&=(const BigInt&);
+    BigInt& operator|=(const BigInt&);
+
+    explicit operator int() const;
     explicit operator std::string() const;
 
     [[nodiscard]] size_t size() const;
-
-    [[nodiscard]] std::string decimal_representation() const;
 };
 
 BigInt operator+(const BigInt&, const BigInt&);
 BigInt operator-(const BigInt&, const BigInt&);
 BigInt operator*(const BigInt&, const BigInt&);
 BigInt operator/(const BigInt&, const BigInt&);
-BigInt operator^(const BigInt&, const BigInt&);
 BigInt operator%(const BigInt&, const BigInt&);
+BigInt operator^(const BigInt&, const BigInt&);
 BigInt operator&(const BigInt&, const BigInt&);
 BigInt operator|(const BigInt&, const BigInt&);
-
 
 std::ostream& operator<<(std::ostream&, const BigInt&);
 std::istream& operator>>(std::istream&, BigInt&);
