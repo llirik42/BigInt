@@ -1,3 +1,5 @@
+#include <iostream>
+
 inline unsigned int get_max(unsigned int a, unsigned int b){
     return a > b ? a : b;
 }
@@ -11,17 +13,6 @@ inline char digit_to_char(unsigned int d){
     return char(d + '0');
 }
 
-static unsigned int ceil_log(unsigned long long base, unsigned long long number){
-    if (!number){
-        return 1;
-    }
+unsigned int ceil_log(unsigned long long base, unsigned long long number);
 
-    unsigned int result = 0;
-
-    while (number){
-        result++;
-        number /= base;
-    }
-
-    return result;
-}
+bool is_string_numeric(std::string str);

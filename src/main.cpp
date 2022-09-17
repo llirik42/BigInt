@@ -3,6 +3,7 @@
 #include "numeric_string.h"
 #include <cassert>
 #include <climits>
+#include "utils.h"
 
 void test_numeric_string(){
     assert(NumericString(0) == "0");
@@ -76,11 +77,30 @@ void test_smart_vector(){
     assert(SmartVector("111111111") / SmartVector(42) == SmartVector("2645502"));
     std::cout << "All tests of SmartVector passed\n\n";
 }
+void test_is_numeric_string(){
+    assert(is_string_numeric("") == false);
+    assert(is_string_numeric("0") == true);
+    assert(is_string_numeric("00") == false);
+    assert(is_string_numeric("01") == false);
+    assert(is_string_numeric("-0") == false);
+    assert(is_string_numeric("-") == false);
+    assert(is_string_numeric("-01") == false);
+    assert(is_string_numeric("123.5") == false);
+    assert(is_string_numeric("123000000q") == false);
+    assert(is_string_numeric("123000000q") == false);
+    assert(is_string_numeric("q") == false);
+    assert(is_string_numeric("-12345") == true);
+    assert(is_string_numeric("-1") == true);
+    assert(is_string_numeric("1") == true);
+    assert(is_string_numeric("123") == true);
+    std::cout << "All tests of is_string_numeric() passed\n\n";
+}
 
 
 int main() {
     test_numeric_string();
     test_smart_vector();
+    test_is_numeric_string();
 
     return 0;
 }
