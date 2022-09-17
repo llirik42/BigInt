@@ -57,6 +57,7 @@ void test_smart_vector(){
     assert(SmartVector(1) - SmartVector(0) == SmartVector(1));
     assert(SmartVector(100000000000001) - SmartVector(1) == SmartVector(100000000000000));
     assert(SmartVector(0) - SmartVector(0) == SmartVector(0));
+    assert(SmartVector(10) - SmartVector(1) == SmartVector(9));
     assert(SmartVector(100000000000000) - SmartVector(1) == SmartVector(99999999999999));
     assert(SmartVector(1010101010101010) - SmartVector(101010101010101) == SmartVector(909090909090909));
     assert(SmartVector(123456789) - SmartVector(123456) == SmartVector(123333333));

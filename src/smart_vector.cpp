@@ -166,6 +166,7 @@ SmartVector& SmartVector::operator-=(const SmartVector& v){
             }
 
             digit1 -= carry;
+            carry = 0;
         }
         else{
             f = false;
