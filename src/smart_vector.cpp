@@ -154,7 +154,7 @@ SmartVector& SmartVector::operator-=(const SmartVector& v){
     SmartVector result = *this;
 
     unsigned int carry = 0;
-    bool f = false;
+    bool f;
     for (unsigned int i = this->length; i > 0; i--){
         unsigned long long digit1 = this->data[i - 1];
 
@@ -271,13 +271,64 @@ SmartVector& SmartVector::operator%=(const SmartVector& v){
     return *this;
 }
 SmartVector& SmartVector::operator^=(const SmartVector& v){
+    const unsigned int max_length = get_max(this->length, v.length);
 
+    SmartVector tmp = v;
+
+    SmartVector result = SmartVector(0);
+    result.append_zero_blocks(max_length - 1);
+
+    this->extend_and_copy(max_length - this->length);
+    tmp.extend_and_copy(max_length - this->length);
+
+    for (unsigned int i = 0; i < max_length; i++){
+        result.data[i] = this->data[i] ^ tmp.data[i];
+    }
+
+    result.reduce_first_zero_blocks();
+
+    *this = result;
+    return *this;
 }
 SmartVector& SmartVector::operator&=(const SmartVector& v){
+    const unsigned int max_length = get_max(this->length, v.length);
 
+    SmartVector tmp = v;
+
+    SmartVector result = SmartVector(0);
+    result.append_zero_blocks(max_length - 1);
+
+    this->extend_and_copy(max_length - this->length);
+    tmp.extend_and_copy(max_length - this->length);
+
+    for (unsigned int i = 0; i < max_length; i++){
+        result.data[i] = this->data[i] & tmp.data[i];
+    }
+
+    result.reduce_first_zero_blocks();
+
+    *this = result;
+    return *this;
 }
 SmartVector& SmartVector::operator|=(const SmartVector& v){
-    SmartVector result = *this;
+    const unsigned int max_length = get_max(this->length, v.length);
+
+    SmartVector tmp = v;
+
+    SmartVector result = SmartVector(0);
+    result.append_zero_blocks(max_length - 1);
+
+    this->extend_and_copy(max_length - this->length);
+    tmp.extend_and_copy(max_length - this->length);
+
+    for (unsigned int i = 0; i < max_length; i++){
+        result.data[i] = this->data[i] | tmp.data[i];
+    }
+
+    result.reduce_first_zero_blocks();
+
+    *this = result;
+    return *this;
 
 }
 
