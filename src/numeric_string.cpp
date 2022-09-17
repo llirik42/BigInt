@@ -2,8 +2,6 @@
 #include "utils.h"
 #include <climits>
 
-inline const char* ULLONG_MAX_STR = "18446744073709551615";
-
 void copy_into_the_end(const char* from, unsigned int from_length, char* to, unsigned int to_length){
     const unsigned int length = get_min(from_length, to_length);
 
@@ -342,7 +340,7 @@ bool NumericString::operator>(const NumericString& operand) const{
 }
 
 NumericString::operator unsigned long long() const{
-    const NumericString ullong_max_numeric = NumericString(ULLONG_MAX_STR);
+    const NumericString ullong_max_numeric = NumericString(std::to_string(ULLONG_MAX));
 
     if ((*this) > ullong_max_numeric){
         return ULLONG_MAX;
