@@ -10,7 +10,7 @@ BigInt::BigInt() {
 BigInt::BigInt(int number) {
     this->is_positive = (number >= 0);
 
-    this->vector = SmartVector(number);
+    this->vector = SmartVector(abs(number));
 }
 BigInt::BigInt(const std::string& str) {
     if (!is_string_numeric(str)){
