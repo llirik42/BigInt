@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include "../big_int.h"
 
-inline const unsigned int POINTER_SIZE = 4;
+inline const unsigned int POINTER_SIZE = sizeof(void*);
 
 TEST(size_test, size_test1){
     BigInt b = BigInt();
