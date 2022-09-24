@@ -172,13 +172,13 @@ NumericString NumericString::operator*(const NumericString& operand) const{
     }
 
     if (operand_length == 1){
-        unsigned int carry = 0;
+        unsigned char carry = 0;
 
-        const unsigned int operand_only_digit = char_to_digit(operand.string[0]);
+        const unsigned char operand_only_digit = char_to_digit(operand.string[0]);
         for (unsigned int i = this->get_length(); i > 0; i--){
-            const unsigned int current_digit1 = char_to_digit(this->string[i - 1]);
+            const unsigned char current_digit1 = char_to_digit(this->string[i - 1]);
 
-            const unsigned int product = current_digit1 * operand_only_digit + carry;
+            const unsigned char product = current_digit1 * operand_only_digit + carry;
 
             result.insert_front(digit_to_char(product % 10));
 
@@ -224,7 +224,7 @@ NumericString NumericString::operator/(unsigned long long operand) const{
     }
 
     while(true){
-        result.append(digit_to_char(r / operand), 1);
+        result.append(digit_to_char((unsigned char) (r / operand)), 1);
         r %= operand;
 
         if (current_index == this->length){
@@ -340,7 +340,7 @@ bool NumericString::operator>(const NumericString& operand) const{
 }
 
 NumericString::operator unsigned long long() const{
-    const NumericString ullong_max_numeric = NumericString(std::to_string(ULLONG_MAX));
+    const NumericString ullong_max_numeric = NumericString(ULLONG_MAX);
 
     if ((*this) > ullong_max_numeric){
         return ULLONG_MAX;

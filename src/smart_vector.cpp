@@ -28,7 +28,7 @@ SmartVector::SmartVector(const std::string& str){
     this->data = new Block[length];
 
     for (unsigned int i = this->length; i > 0; i--){
-        data[i - 1] = numerical_str % BASE;
+        data[i - 1] = Block(numerical_str % BASE);
         numerical_str /= BASE;
     }
 }
@@ -87,7 +87,7 @@ SmartVector& SmartVector::operator+=(const SmartVector& v){
         }
 
         this->data[this->length - i - 1] = current_sum % BASE;
-        carry = current_sum / BASE;
+        carry = current_sum > BASE;
     }
 
     if (carry){
@@ -116,7 +116,7 @@ SmartVector& SmartVector::operator*=(const SmartVector& v){
 
             result.data[i - 1] = product % BASE;
 
-            carry = product / BASE;
+            carry = (unsigned int) (product / BASE);
         }
 
         if (carry){
@@ -185,7 +185,7 @@ SmartVector& SmartVector::operator-=(const SmartVector& v){
 
         const unsigned long long current_difference = digit1 - digit2;
 
-        result.data[i - 1] = current_difference;
+        result.data[i - 1] = Block(current_difference);
     }
 
     result.reduce_first_zero_blocks();

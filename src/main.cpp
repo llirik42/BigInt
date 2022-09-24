@@ -99,12 +99,9 @@ void test_is_numeric_string(){
 
 
 int main() {
-    try{
-        BigInt a = BigInt("123g");
-    }
-    catch(std::invalid_argument& argument){
-        std::cout << argument.what() << "\n";
-    }
+    test_numeric_string();
+    test_is_numeric_string();
+    test_smart_vector();
 
     return 0;
 }
