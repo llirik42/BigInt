@@ -94,13 +94,10 @@ BigInt BigInt::operator+() const{
     return *this;
 }
 BigInt BigInt::operator-(){
-    BigInt result;
-    result.is_positive = this->is_positive;
-    result.vector = std::move(this->vector);
-    return result;
+    this->is_positive = !this->is_positive;
+    return *this;
 }
 BigInt& BigInt::operator~(){
-    this->is_positive = !this->is_positive;
     this->vector = ~this->vector;
     return *this;
 }

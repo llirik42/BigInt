@@ -333,7 +333,7 @@ SmartVector& SmartVector::operator~(){
     SmartVector result = *this;
 
     for (unsigned int i = this->length; i > 0; i--){
-        result.data[i] = ~(this->data[i]);
+        result.data[i - 1] = ~(this->data[i - 1]);
     }
 
     reduce_first_zero_blocks();

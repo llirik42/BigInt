@@ -99,9 +99,8 @@ void test_is_numeric_string(){
 
 
 int main() {
-    test_numeric_string();
-    test_is_numeric_string();
-    test_smart_vector();
+    std::cout << (11111111111 ^ 22222222222);
+
 
     return 0;
 }
