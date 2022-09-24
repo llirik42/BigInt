@@ -62,6 +62,12 @@ TEST(comparison_test, greater_test4){
 
     EXPECT_FALSE(a > b);
 }
+TEST(comparison_test, greater_test5){
+    BigInt b = BigInt(0);
+    BigInt a = BigInt(-1) + BigInt(1);
+
+    EXPECT_FALSE(a > b);
+}
 
 TEST(comparison_test, greater_or_equal_test1){
     BigInt a = BigInt(1);

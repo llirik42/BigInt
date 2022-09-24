@@ -122,7 +122,7 @@ const BigInt BigInt::operator--(int){
 }
 
 bool BigInt::operator==(const BigInt& b) const{
-    return this->is_positive == b.is_positive && this->vector == b.vector;
+    return (this->is_zero() && b.is_zero()) || this->is_positive == b.is_positive && this->vector == b.vector;
 }
 bool BigInt::operator!=(const BigInt& b) const{
     return !(b == *this);
@@ -181,7 +181,7 @@ BigInt::operator int() const{
 BigInt::operator std::string() const{
     std::string result = std::string(this->vector);
 
-    if (!this->is_positive){
+    if (!this->is_positive && !this->is_zero()){
         result.insert(0, 1, '-');
     }
     return result;
@@ -189,6 +189,9 @@ BigInt::operator std::string() const{
 
 size_t BigInt::size() const{
     return sizeof(this->is_positive) + this->vector.size();
+}
+bool BigInt::is_zero() const{
+    return (int(*this)) == 0;
 }
 
 BigInt operator+(const BigInt& a, const BigInt& b){

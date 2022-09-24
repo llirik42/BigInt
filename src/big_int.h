@@ -46,6 +46,7 @@ public:
     explicit operator std::string() const;
 
     [[nodiscard]] size_t size() const;
+    [[nodiscard]] bool is_zero() const;
 };
 
 BigInt operator+(const BigInt&, const BigInt&);
