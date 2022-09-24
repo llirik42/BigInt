@@ -4,6 +4,8 @@
 
 typedef unsigned int Block;
 
+inline const unsigned long long BASE = 4294967296; // must be power of 2 for binary operations
+
 class SmartVector{
 private:
     Block* data;

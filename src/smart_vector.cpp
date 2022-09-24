@@ -2,8 +2,6 @@
 #include "numeric_string.h"
 #include "utils.h"
 
-inline const unsigned long long BASE = 4294967296; // must be power of 2 for binary operations
-
 SmartVector::SmartVector(){
     this->length = 1;
 
@@ -446,7 +444,7 @@ SmartVector::operator std::string() const{
 }
 
 size_t SmartVector::size() const{
-    return sizeof(this->data) + sizeof(this->data) + length * sizeof(Block);
+    return sizeof(this->length) + sizeof(this->data) + length * sizeof(Block);
 }
 
 SmartVector operator+(const SmartVector& v1, const SmartVector& v2){
