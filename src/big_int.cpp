@@ -167,8 +167,11 @@ BigInt& BigInt::operator|=(const BigInt& b){
 }
 
 BigInt::operator int() const{
-    if (this->vector > SmartVector(INT_MAX)){
-        return this->is_positive ? INT_MAX : -INT_MAX;
+    if (this->is_positive && this->vector > SmartVector(INT_MAX)){
+        return INT_MAX;
+    }
+    if (!this->is_positive && this->vector > SmartVector(-(long long)(INT_MIN))){
+        return INT_MIN;
     }
 
     int abs_value = int(this->vector);
