@@ -2,380 +2,135 @@
 #include "numeric_string.h"
 #include "utils.h"
 
-SmartVector::SmartVector(): length(1), data(new Block[1]) {data[0] = 0;}
-SmartVector::SmartVector(unsigned long long number){
-    this->length = ceil_log(BASE, number);
+inline const unsigned char DISJUNCTION_CODE = 0;
+inline const unsigned char CONJUNCTION_CODE = 1;
+inline const unsigned char XOR_CODE = 2;
+inline const unsigned char ADDITION_CODE = 3;
+inline const unsigned char SUBTRACTION_CODE = 4;
+inline const unsigned char MULTIPLICATION_CODE = 5;
+inline const unsigned char DIV_CODE = 6;
+inline const unsigned char MOD_CODE = 7;
 
-    this->data = new Block[length];
+SmartVector& SmartVector::logic_operation(const SmartVector& operand, const unsigned char& operation_type){
+    const unsigned int max_length = get_max(_length, operand._length);
 
-    for (unsigned int i = length; i > 0; i--){
-        this->data[i - 1] = number % BASE;
-        number /= BASE;
-    }
-}
-SmartVector::SmartVector(const std::string& str){
-    NumericString numerical_str = NumericString(str);
+    SmartVector tmp = operand;
 
-    this->length = ceil_log_numerical_str(BASE, numerical_str);
-
-    this->data = new Block[length];
-
-    for (unsigned int i = this->length; i > 0; i--){
-        data[i - 1] = Block(numerical_str % BASE);
-        numerical_str /= BASE;
-    }
-}
-SmartVector::SmartVector(SmartVector&& v) noexcept{
-    this->data = v.data;
-    this->length = v.length;
-    v.data = nullptr;
-}
-SmartVector::SmartVector(const SmartVector& v){
-    this->length = v.length;
-    this->data = new Block[this->length];
-
-    for (unsigned int i = 0; i < this->length; i++){
-        this->data[i] = v.data[i];
-    }
-}
-SmartVector::~SmartVector(){
-    delete[] this->data;
-}
-
-SmartVector& SmartVector::operator=(const SmartVector& v){
-    if (&v == this){
-        return (*this);
-    }
-
-    this->length = v.length;
-    delete[] this->data;
-
-    this->data = new Block[this->length];
-
-    for (unsigned int i = 0; i < this->length; i++){
-        this->data[i] = v.data[i];
-    }
-
-    return (*this);
-}
-SmartVector& SmartVector::operator=(SmartVector&& v) noexcept{
-    this->data = v.data;
-    this->length = v.length;
-    v.data = nullptr;
-
-    return (*this);
-}
-
-SmartVector& SmartVector::operator+=(const SmartVector& v){
-    const unsigned int max_length = get_max(this->length, v.length);
-
-    this->extend_and_copy(max_length - this->length);
-
-    Block carry = 0;
-    for (unsigned int i = 0; i < max_length; i++){
-        unsigned long long current_sum = this->data[this->length - i - 1] + carry;
-
-        if (v.length > i){
-            current_sum += v.data[v.length - i - 1];
-        }
-
-        this->data[this->length - i - 1] = current_sum % BASE;
-        carry = current_sum > BASE;
-    }
-
-    if (carry){
-        this->extend_and_copy(1);
-        this->data[0] = carry;
-    }
-
-    return (*this);
-}
-SmartVector& SmartVector::operator*=(const SmartVector& v){
-    if (SmartVector(0) == v){
-        *this = SmartVector(0);
-        return (*this);
-    }
-
-    SmartVector result = *this;
-
-    if (v.length == 1){
-        Block carry = 0;
-
-        const unsigned long long operand_only_digit = v.data[0];
-        for (unsigned int i = this->length; i > 0; i--){
-            const unsigned long long current_digit = this->data[i - 1];
-
-            const unsigned long long product = current_digit * operand_only_digit + carry;
-
-            result.data[i - 1] = product % BASE;
-
-            carry = (Block) (product / BASE);
-        }
-
-        if (carry){
-            result.extend_and_copy(1);
-            result.data[0] = carry;
-        }
-
-    }
-    else{
-        result = SmartVector(0);
-
-        for (unsigned int i = v.length; i > 0; i--){
-            SmartVector current_digit = SmartVector(v.data[i - 1]);
-
-            SmartVector current_product = (*this) * current_digit;
-
-            if (current_product != SmartVector(0)){
-                current_product.append_zero_blocks(v.length - i);
-            }
-
-
-            result += current_product;
-        }
-    }
-
-
-    *this = result;
-    return *this;
-}
-SmartVector& SmartVector::operator-=(const SmartVector& v){
-    SmartVector operand = v;
-
-    operand.extend_and_copy(this->length - operand.length);
-
-    SmartVector result = *this;
-
-    unsigned int carry = 0;
-    bool f;
-    for (unsigned int i = this->length; i > 0; i--){
-        unsigned long long digit1 = this->data[i - 1];
-
-        if (carry){
-            f = digit1 == 0;
-
-            if (digit1 == 0){
-                digit1 = BASE;
-            }
-
-            digit1 -= carry;
-            carry = 0;
-        }
-        else{
-            f = false;
-        }
-
-        const unsigned long long digit2 = operand.data[i - 1];
-
-        if (digit1 < digit2){
-            digit1 += BASE;
-            carry = 1;
-        }
-
-        if (f){
-            carry = 1;
-        }
-
-        const unsigned long long current_difference = digit1 - digit2;
-
-        result.data[i - 1] = Block(current_difference);
-    }
-
-    result.reduce_first_zero_blocks();
-
-    *this = result;
-    return *this;
-}
-SmartVector& SmartVector::operator/=(const SmartVector& v){
-    *this = divide(v, false);
-    return *this;
-}
-SmartVector& SmartVector::operator%=(const SmartVector& v){
-    *this = divide(v, true);
-    return *this;
-}
-SmartVector& SmartVector::operator^=(const SmartVector& v){
-    const unsigned int max_length = get_max(this->length, v.length);
-
-    SmartVector tmp = v;
-
-    SmartVector result = SmartVector(0);
-    result.append_zero_blocks(max_length - 1);
-
-    this->extend_and_copy(max_length - this->length);
-    tmp.extend_and_copy(max_length - this->length);
+    extend_and_copy(max_length - _length);
+    tmp.extend_and_copy(max_length - _length);
 
     for (unsigned int i = 0; i < max_length; i++){
-        result.data[i] = this->data[i] ^ tmp.data[i];
+        Block& result_digit = _data[i];
+        const Block& operand_digit = tmp._data[i];
+
+        switch(operation_type){
+            case XOR_CODE:
+                result_digit = result_digit ^ operand_digit;
+                break;
+            case CONJUNCTION_CODE:
+                result_digit = result_digit & operand_digit;
+                break;
+            case DISJUNCTION_CODE:
+                result_digit = result_digit | operand_digit;
+                break;
+            default:
+                break;
+        }
     }
-
-    result.reduce_first_zero_blocks();
-
-    *this = result;
-    return *this;
-}
-SmartVector& SmartVector::operator&=(const SmartVector& v){
-    const unsigned int max_length = get_max(this->length, v.length);
-
-    SmartVector tmp = v;
-
-    SmartVector result = SmartVector(0);
-    result.append_zero_blocks(max_length - 1);
-
-    this->extend_and_copy(max_length - this->length);
-    tmp.extend_and_copy(max_length - this->length);
-
-    for (unsigned int i = 0; i < max_length; i++){
-        result.data[i] = this->data[i] & tmp.data[i];
-    }
-
-    result.reduce_first_zero_blocks();
-
-    *this = result;
-    return *this;
-}
-SmartVector& SmartVector::operator|=(const SmartVector& v){
-    const unsigned int max_length = get_max(this->length, v.length);
-
-    SmartVector tmp = v;
-
-    SmartVector result = SmartVector(0);
-    result.append_zero_blocks(max_length - 1);
-
-    this->extend_and_copy(max_length - this->length);
-    tmp.extend_and_copy(max_length - this->length);
-
-    for (unsigned int i = 0; i < max_length; i++){
-        result.data[i] = this->data[i] | tmp.data[i];
-    }
-
-    result.reduce_first_zero_blocks();
-
-    *this = result;
-    return *this;
-
-}
-SmartVector& SmartVector::operator~(){
-    SmartVector result = *this;
-
-    for (unsigned int i = this->length; i > 0; i--){
-        result.data[i - 1] = ~(this->data[i - 1]);
-    }
-
     reduce_first_zero_blocks();
-
-    *this = result;
-    return (*this);
+    return *this;
 }
+SmartVector operation(const SmartVector& operand1, const SmartVector& operand2, const unsigned char& operation_type){
+    SmartVector result = operand1;
 
-bool SmartVector::operator==(const SmartVector& v) const{
-    if (this->length != v.length){
-        return false;
-    }
-
-    for (unsigned int i = v.length; i > 0; i--){
-        if (this->data[i - 1] != v.data[i - 1]){
-            return false;
-        }
-    }
-
-    return true;
-}
-bool SmartVector::operator!=(const SmartVector& v) const{
-    return !(*this == v);
-}
-bool SmartVector::operator>(const SmartVector& v) const{
-    if (this->length != v.length){
-        return this->length > v.length;
-    }
-    for (unsigned int i = 0; i < v.length; i++){
-        if (this->data[i] != v.data[i]){
-            return this->data[i] > v.data[i];
-        }
-    }
-
-    return false;
-}
-bool SmartVector::operator>=(const SmartVector& v) const{
-    return *this == v || *this > v;
-}
-
-void SmartVector::extend_and_copy(unsigned int delta){
-    SmartVector tmp = (*this);
-
-    this->length += delta;
-    this->data = new Block[this->length];
-
-    for (unsigned int i = 0; i < delta; i++){
-        this->data[i] = 0;
-    }
-
-    for (unsigned int i = 0; i < tmp.length; i++){
-        this->data[this->length - i - 1] = tmp.data[tmp.length - i - 1];
-    }
-}
-void SmartVector::append_zero_blocks(unsigned int count){
-    SmartVector tmp = *this;
-
-    delete[] this->data;
-    this->data = new Block[this->length + count];
-
-    for (unsigned int i = 0; i < this->length; i++){
-        this->data[i] = tmp.data[i];
-    }
-    for (unsigned int i = 0; i < count; i++){
-        this->data[this->length + i] = 0;
-    }
-
-    this->length += count;
-}
-void SmartVector::reduce_first_block(){
-    SmartVector tmp = *this;
-
-    this->length--;
-    delete[] this->data;
-    this->data = new Block[this->length];
-
-    for (unsigned int i = this->length; i > 0; i--){
-        this->data[i - 1] = tmp.data[i];
-    }
-}
-void SmartVector::reduce_first_zero_blocks(){
-    while(this->length > 1 && this->data[0] == 0){
-        this->reduce_first_block();
-    }
-}
-
-SmartVector::operator int() const{
-    int result = 0;
-    unsigned int current_m = 1;
-    const unsigned int m = BASE;
-    for (unsigned int i = this->length; i > 0; i--, current_m *= m){
-        result += int(this->data[i - 1] * current_m);
+    switch(operation_type){
+        case DISJUNCTION_CODE:
+            result |= operand2;
+            break;
+        case CONJUNCTION_CODE:
+            result &= operand2;
+            break;
+        case XOR_CODE:
+            result ^= operand2;
+            break;
+        case ADDITION_CODE:
+            result += operand2;
+            break;
+        case SUBTRACTION_CODE:
+            result -= operand2;
+            break;
+        case MULTIPLICATION_CODE:
+            result *= operand2;
+            break;
+        case DIV_CODE:
+            result /= operand2;
+            break;
+        case MOD_CODE:
+            result %= operand2;
+            break;
+        default:
+            break;
     }
 
     return result;
 }
-SmartVector::operator std::string() const{
-    NumericString result = NumericString(0);
 
-    NumericString m = NumericString(BASE);
-    NumericString current_m = NumericString(1);
+void SmartVector::extend_and_copy(const unsigned int& delta){
+    // Extends array of vector and copies data to the end
 
-    for (unsigned int i = this->length; i > 0; i--){
-        result += current_m * NumericString(this->data[i - 1]);
+    SmartVector tmp = (*this);
 
-        current_m = current_m * m;
+    _length += delta;
+    _data = new Block[_length];
+
+    for (unsigned int i = 0; i < delta; i++){
+        _data[i] = 0;
     }
 
-    return std::string(result);
+    for (unsigned int i = 0; i < tmp._length; i++){
+        _data[_length - i - 1] = tmp._data[tmp._length - i - 1];
+    }
 }
+void SmartVector::append_zero_blocks(const unsigned int& count){
+    SmartVector tmp = *this;
 
-size_t SmartVector::size() const{
-    return sizeof(this->length) + sizeof(this->data) + length * sizeof(Block);
+    delete[] _data;
+    _data = new Block[_length + count];
+
+    for (unsigned int i = 0; i < _length; i++){
+        _data[i] = tmp._data[i];
+    }
+    for (unsigned int i = 0; i < count; i++){
+        _data[_length + i] = 0;
+    }
+
+    _length += count;
 }
+void SmartVector::reduce_first_blocks(const unsigned int& count){
+    SmartVector tmp = *this;
 
-SmartVector SmartVector::divide(const SmartVector& operand, bool mod){
+    _length -= count;
+    delete[] _data;
+    _data = new Block[_length];
+
+    for (unsigned int i = _length; i > 0; i--){
+        _data[i - 1] = tmp._data[i + count - 1];
+    }
+}
+void SmartVector::reduce_first_zero_blocks(){
+    unsigned int zero_blocks_count = 0;
+
+    const unsigned int stop = _length - 1;
+    for (unsigned int i = 0; i < stop; i++){
+        if (_data[i]){
+            break;
+        }
+        zero_blocks_count++;
+    }
+
+    reduce_first_blocks(zero_blocks_count);
+}
+SmartVector SmartVector::divide(const SmartVector& operand, const bool& mod){
     if (operand > *this){
         SmartVector mod_result = *this;
         return mod ? mod_result : SmartVector(0);
@@ -391,16 +146,13 @@ SmartVector SmartVector::divide(const SmartVector& operand, bool mod){
     const SmartVector baseSmartVector = SmartVector(BASE);
     const SmartVector zeroSmartVector = SmartVector(0);
 
-    SmartVector q = SmartVector(0);
-    SmartVector r = SmartVector(0);
+    SmartVector q = zeroSmartVector;
+    SmartVector r = zeroSmartVector;
 
     unsigned int current_index = 0;
 
     while(operand > r){
-        r = r * baseSmartVector + SmartVector(this->data[current_index++]);
-        unsigned long long t = int(r);
-        std::cout << t;
-
+        r = r * baseSmartVector + SmartVector(_data[current_index++]);
     }
 
     while(true){
@@ -410,16 +162,224 @@ SmartVector SmartVector::divide(const SmartVector& operand, bool mod){
             ++q;
         }
 
-        if (current_index == this->length){
+        if (current_index == _length){
             break;
         }
 
-        r = r * baseSmartVector + SmartVector(this->data[current_index++]);
-        unsigned long long x = int(r);
-        std::cout << x;
+        r = r * baseSmartVector + SmartVector(_data[current_index++]);
     }
 
     return mod ? r : q;
+}
+
+SmartVector::SmartVector(): _length(1), _data(new Block[1]) {_data[0] = 0;}
+SmartVector::SmartVector(unsigned long long n){
+    _length = ceil_log(BASE, n);
+
+    _data = new Block[_length];
+
+    for (unsigned int i = _length; i > 0; i--){
+        _data[i - 1] = (Block) (n % BASE);
+        n /= BASE;
+    }
+}
+SmartVector::SmartVector(const std::string& s){
+    NumericString numerical_str = NumericString(s);
+
+    _length = ceil_log_numerical_str(BASE, numerical_str);
+
+    _data = new Block[_length];
+
+    for (unsigned int i = _length; i > 0; i--){
+        _data[i - 1] = Block(numerical_str % BASE);
+        numerical_str /= BASE;
+    }
+}
+SmartVector::SmartVector(SmartVector&& v) noexcept{
+    _data = v._data;
+    _length = v._length;
+    v._data = nullptr;
+}
+SmartVector::SmartVector(const SmartVector& v){
+    _length = v._length;
+    _data = new Block[_length];
+
+    for (unsigned int i = 0; i < _length; i++){
+        _data[i] = v._data[i];
+    }
+}
+SmartVector::~SmartVector(){
+    delete[] _data;
+}
+
+SmartVector& SmartVector::operator=(const SmartVector& v){
+    if (&v == this){
+        return (*this);
+    }
+
+    _length = v._length;
+    delete[] _data;
+
+    _data = new Block[_length];
+
+    for (unsigned int i = 0; i < _length; i++){
+        _data[i] = v._data[i];
+    }
+
+    return (*this);
+}
+SmartVector& SmartVector::operator=(SmartVector&& v) noexcept{
+    *this = v;
+    return (*this);
+}
+
+SmartVector& SmartVector::operator+=(const SmartVector& v){
+    const unsigned int max_length = get_max(_length, v._length);
+
+    extend_and_copy(max_length - _length);
+
+    Block carry = 0;
+    for (unsigned int i = 0; i < max_length; i++){
+        unsigned long long current_sum = _data[_length - i - 1] + carry;
+
+        if (v._length > i){
+            current_sum += v._data[v._length - i - 1];
+        }
+
+        _data[_length - i - 1] = Block(current_sum % BASE);
+        carry = current_sum > BASE;
+    }
+
+    if (carry){
+        extend_and_copy(1);
+        _data[0] = carry;
+    }
+
+    return (*this);
+}
+SmartVector& SmartVector::operator*=(const SmartVector& v){
+    SmartVector zeroSmartVector = SmartVector(0);
+    if (v == zeroSmartVector){
+        *this = std::move(zeroSmartVector);
+        return *this;
+    }
+
+    if (v == SmartVector(1)){
+        return *this;
+    }
+
+    if (v._length == 1){
+        Block carry = 0;
+
+        const unsigned long long operand_only_digit = v._data[0];
+        for (unsigned int i = _length; i > 0; i--){
+            const unsigned long long current_digit = _data[i - 1];
+
+            const unsigned long long product = current_digit * operand_only_digit + carry;
+
+            _data[i - 1] = Block(product % BASE);
+
+            carry = Block(product / BASE);
+        }
+
+        if (carry){
+            extend_and_copy(1);
+            _data[0] = carry;
+        }
+    }
+    else{
+        SmartVector result = SmartVector(0);
+
+        for (unsigned int i = v._length; i > 0; i--){
+            SmartVector current_digit = SmartVector(v._data[i - 1]);
+
+            SmartVector current_product = (*this) * current_digit;
+
+            if (current_product != zeroSmartVector){
+                current_product.append_zero_blocks(v._length - i);
+            }
+
+            result += current_product;
+        }
+
+        *this = result;
+    }
+
+    return *this;
+}
+SmartVector& SmartVector::operator-=(const SmartVector& v){
+    // It's supposed that *this >= v
+
+    const unsigned int delta_length = (_length - v._length);
+
+    unsigned int carry = 0;
+    bool f;
+    for (unsigned int i = _length; i > 0; i--){
+        unsigned long long digit1 = _data[i - 1];
+
+        if (carry){
+            f = digit1 == 0;
+
+            if (digit1 == 0){
+                carry = 1;
+            }
+
+            digit1 -= carry;
+        }
+        else{
+            f = false;
+        }
+
+        const unsigned long long digit2 = i > delta_length ? v._data[i - delta_length - 1] : 0;
+
+        if (digit1 < digit2){
+            digit1 += BASE;
+            carry = 1;
+        }
+
+        if (f){
+            carry = 1;
+        }
+
+        const unsigned long long current_difference = digit1 - digit2;
+
+        _data[i - 1] = Block(current_difference);
+    }
+
+    reduce_first_zero_blocks();
+
+    return *this;
+}
+SmartVector& SmartVector::operator/=(const SmartVector& v){
+    *this = divide(v, false);
+    return *this;
+}
+SmartVector& SmartVector::operator%=(const SmartVector& v){
+    *this = divide(v, true);
+    return *this;
+}
+
+SmartVector& SmartVector::operator^=(const SmartVector& v){
+    *this = logic_operation(v, XOR_CODE);
+    return *this;
+}
+SmartVector& SmartVector::operator&=(const SmartVector& v){
+    *this = logic_operation(v, CONJUNCTION_CODE);
+    return *this;
+}
+SmartVector& SmartVector::operator|=(const SmartVector& v){
+    *this = logic_operation(v, DISJUNCTION_CODE);
+    return *this;
+
+}
+SmartVector& SmartVector::operator~(){
+    for (unsigned int i = _length; i > 0; i--){
+        _data[i - 1] = ~(_data[i - 1]);
+    }
+
+    reduce_first_zero_blocks();
+
+    return (*this);
 }
 
 SmartVector& SmartVector::operator++(){
@@ -427,51 +387,86 @@ SmartVector& SmartVector::operator++(){
     return *this;
 }
 
-SmartVector operator+(const SmartVector& v1, const SmartVector& v2){
-    SmartVector result = SmartVector(0);
+bool SmartVector::operator==(const SmartVector& v) const{
+    if (_length != v._length){
+        return false;
+    }
 
-    result += v1;
-    result += v2;
+    for (unsigned int i = v._length; i > 0; i--){
+        if (_data[i - 1] != v._data[i - 1]){
+            return false;
+        }
+    }
+
+    return true;
+}
+bool SmartVector::operator!=(const SmartVector& v) const{
+    return !(*this == v);
+}
+bool SmartVector::operator>(const SmartVector& v) const{
+    if (_length != v._length){
+        return _length > v._length;
+    }
+    for (unsigned int i = 0; i < v._length; i++){
+        if (_data[i] != v._data[i]){
+            return _data[i] > v._data[i];
+        }
+    }
+
+    return false;
+}
+bool SmartVector::operator>=(const SmartVector& v) const{
+    return *this == v || *this > v;
+}
+
+SmartVector::operator int() const{
+    int result = 0;
+    auto m = BASE;
+    decltype(m) current_m = 1;
+    for (unsigned int i = _length; i > 0; i--, current_m *= m){
+        result += int(_data[i - 1] * current_m);
+    }
 
     return result;
+}
+SmartVector::operator std::string() const{
+    NumericString result = NumericString(0);
+
+    NumericString m = NumericString(BASE);
+    NumericString current_m = NumericString(1);
+
+    for (unsigned int i = _length; i > 0; i--, current_m = current_m * m){
+        result += current_m * NumericString(_data[i - 1]);
+    }
+
+    return std::string(result);
+}
+
+size_t SmartVector::size() const{
+    return sizeof(_length) + sizeof(_data) + _length * sizeof(Block);
+}
+
+SmartVector operator+(const SmartVector& v1, const SmartVector& v2){
+    return operation(v1, v2, ADDITION_CODE);
 }
 SmartVector operator-(const SmartVector& v1, const SmartVector& v2){
-    SmartVector result = v1;
-    result -= v2;
-    return result;
+    return operation(v1, v2, SUBTRACTION_CODE);
 }
 SmartVector operator*(const SmartVector& v1, const SmartVector& v2){
-    SmartVector result = v1;
-    result *= v2;
-    return result;
+    return operation(v1, v2, MULTIPLICATION_CODE);
 }
 SmartVector operator/(const SmartVector& v1, const SmartVector& v2){
-    SmartVector result = v1;
-    result /= v2;
-    return result;
+    return operation(v1, v2, DIV_CODE);
 }
 SmartVector operator%(const SmartVector& v1, const SmartVector& v2){
-    SmartVector result = v1;
-    result %= v2;
-    return result;
+    return operation(v1, v2, MOD_CODE);
 }
 SmartVector operator^(const SmartVector& v1, const SmartVector& v2){
-    SmartVector result = v1;
-    result ^= v2;
-    return result;
+    return operation(v1, v2, XOR_CODE);
 }
 SmartVector operator&(const SmartVector& v1, const SmartVector& v2){
-    SmartVector result = v1;
-    result &= v2;
-    return result;
+    return operation(v1, v2, CONJUNCTION_CODE);
 }
 SmartVector operator|(const SmartVector& v1, const SmartVector& v2){
-    SmartVector result = v1;
-    result |= v2;
-    return result;
-}
-
-std::ostream& operator<<(std::ostream& out, const SmartVector &b){
-    out << std::string(b);
-    return out;
+    return operation(v1, v2, DISJUNCTION_CODE);
 }
