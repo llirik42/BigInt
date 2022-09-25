@@ -6,7 +6,8 @@ private:
     bool _is_positive;
     SmartVector _vector;
 
-    void handle_minus_zero(); // If _is_positive = false, but object = 0, sets _is_positive = true
+    void handle_minus_zero();
+    BigInt& logic_operation(const BigInt& operand, const unsigned char& operation_type);
 public:
     BigInt();
     explicit BigInt(const int& number);

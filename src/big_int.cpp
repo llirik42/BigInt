@@ -1,74 +1,148 @@
 #include "big_int.h"
 #include "utils.h"
-#include <climits>
 
-BigInt::BigInt(): is_positive(true), vector(SmartVector()) {}
-BigInt::BigInt(int number): is_positive(number >= 0), vector(SmartVector(abs(number))) {}
+inline const unsigned char DISJUNCTION_CODE = 0;
+inline const unsigned char CONJUNCTION_CODE = 1;
+inline const unsigned char XOR_CODE = 2;
+inline const unsigned char ADDITION_CODE = 3;
+inline const unsigned char SUBTRACTION_CODE = 4;
+inline const unsigned char MULTIPLICATION_CODE = 5;
+inline const unsigned char DIV_CODE = 6;
+inline const unsigned char MOD_CODE = 7;
+
+void BigInt::handle_minus_zero(){
+    // If _is_positive = false, but object = 0, sets _is_positive = true
+
+    _is_positive = _is_positive || is_zero();
+}
+BigInt& BigInt::logic_operation(const BigInt& operand, const unsigned char& operation_type){
+    BigInt result;
+    result._is_positive = _is_positive == operand._is_positive;
+
+    switch(operation_type){
+        case DISJUNCTION_CODE:
+            result._vector = _vector | operand._vector;
+            break;
+        case CONJUNCTION_CODE:
+            result._vector = _vector & operand._vector;
+            break;
+        case XOR_CODE:
+            result._vector = _vector ^ operand._vector;
+            break;
+        default:
+            result._vector = _vector;
+    }
+
+    *this = result;
+    return *this;
+
+
+}
+BigInt operation(const BigInt& operand1, const BigInt& operand2, const unsigned char& operation_type){
+    BigInt result = operand1;
+
+    switch(operation_type){
+        case DISJUNCTION_CODE:
+            result |= operand2;
+            break;
+        case CONJUNCTION_CODE:
+            result &= operand2;
+            break;
+        case XOR_CODE:
+            result ^= operand2;
+            break;
+        case ADDITION_CODE:
+            result += operand2;
+            break;
+        case SUBTRACTION_CODE:
+            result -= operand2;
+            break;
+        case MULTIPLICATION_CODE:
+            result *= operand2;
+            break;
+        case DIV_CODE:
+            result /= operand2;
+            break;
+        case MOD_CODE:
+            result %= operand2;
+            break;
+        default:
+            break;
+    }
+
+    return result;
+}
+
+BigInt::BigInt(): _is_positive(true), _vector(SmartVector()) {}
+BigInt::BigInt(const int& number): _is_positive(number >= 0), _vector(SmartVector(abs(number))) {}
 BigInt::BigInt(const std::string& str) {
     if (!is_string_numeric(str)){
         throw std::invalid_argument("Invalid string for BigInt");
     }
 
-    is_positive = str[0] != '-';
+    _is_positive = str[0] != '-';
 
     std::string tmp = str;
 
-    if (!is_positive){
+    if (!_is_positive){
         tmp.erase(0, 1);
     }
 
-    this->vector = SmartVector(tmp);
+    _vector = SmartVector(tmp);
 }
 BigInt::BigInt(const BigInt& b)=default;
-BigInt::BigInt(BigInt&& b) noexcept: is_positive(b.is_positive), vector(std::move(b.vector)) {}
+BigInt::BigInt(BigInt&& b) noexcept: _is_positive(b._is_positive), _vector(std::move(b._vector)) {}
 BigInt::~BigInt()=default;
 
 BigInt& BigInt::operator=(const BigInt& b)=default;
 BigInt& BigInt::operator=(BigInt&& b) noexcept{
-    this->is_positive = b.is_positive;
-    this->vector = std::move(b.vector);
+    _is_positive = b._is_positive;
+    _vector = std::move(b._vector);
     return *this;
 }
 
 BigInt& BigInt::operator+=(const BigInt& b){
     BigInt result;
 
-    if (this->is_positive != b.is_positive){
-        result.is_positive = this->vector > b.vector ? this->is_positive : b.is_positive;
-        result.vector = this->vector > b.vector ? this->vector - b.vector : b.vector - this->vector;
+    result._is_positive = _vector > b._vector ? _is_positive : b._is_positive;
+
+    if (_is_positive != b._is_positive){
+        result._vector = _vector > b._vector ? _vector - b._vector : b._vector - _vector;
     }
     else{
-        result.is_positive = this->is_positive;
-        result.vector = this->vector + b.vector;
+        result._vector = _vector + b._vector;
     }
 
     *this = result;
-    this->is_positive = this->is_positive || this->is_zero();
+    handle_minus_zero();
     return *this;
 }
 BigInt& BigInt::operator*=(const BigInt& b){
-    if (!b.is_positive){
-        this->is_positive = !this->is_positive;
-    }
-    this->vector *= b.vector;
+    _is_positive = _is_positive == b._is_positive;
+    _vector *= b._vector;
 
-    this->is_positive = this->is_positive || this->is_zero();
+    handle_minus_zero();
+
     return *this;
 }
 BigInt& BigInt::operator-=(const BigInt& b){
     BigInt tmp = b;
-    tmp.is_positive = !tmp.is_positive;
+    tmp._is_positive = !tmp._is_positive;
     *this += tmp;
-    this->is_positive = this->is_positive || this->is_zero();
+
+    handle_minus_zero();
+
     return *this;
 }
 BigInt& BigInt::operator/=(const BigInt& b){
     if (b.is_zero()){
         throw std::invalid_argument("Division by zero");
     }
-    this->is_positive = this->is_positive == b.is_positive;
-    this->vector /= b.vector;
-    this->is_positive = this->is_positive || this->is_zero();
+    _is_positive = _is_positive == b._is_positive;
+    _vector /= b._vector;
+
+    handle_minus_zero();
+
 
     return *this;
 }
@@ -76,14 +150,14 @@ BigInt& BigInt::operator%=(const BigInt& b){
     if (b.is_zero()){
         throw std::invalid_argument("Division by zero");
     }
-    if (!b.is_positive){
+    if (!b._is_positive){
         throw std::invalid_argument("Attempt of getting reminded for division by a negative number");
     }
 
-    while(!this->is_positive){
+    while(!_is_positive){
         *this += b;
     }
-    this->vector %= b.vector;
+    _vector %= b._vector;
 
     return *this;
 }
@@ -92,11 +166,11 @@ BigInt BigInt::operator+() const{
     return *this;
 }
 BigInt BigInt::operator-(){
-    this->is_positive = !this->is_positive;
+    _is_positive = !_is_positive;
     return *this;
 }
 BigInt& BigInt::operator~(){
-    this->vector = ~this->vector;
+    _vector = ~_vector;
     return *this;
 }
 
@@ -139,106 +213,80 @@ bool BigInt::operator<=(const BigInt& b) const{
 }
 
 BigInt& BigInt::operator^=(const BigInt& b){
-    BigInt result;
-    result.is_positive = this->is_positive == b.is_positive;
-    result.vector = this->vector ^ b.vector;
-    *this = result;
+    *this = logic_operation(b, XOR_CODE);
     return *this;
 }
 BigInt& BigInt::operator&=(const BigInt& b){
-    BigInt result;
-    result.is_positive = this->is_positive == b.is_positive;
-    result.vector = this->vector & b.vector;
-    *this = result;
+    *this = logic_operation(b, CONJUNCTION_CODE);
     return *this;
 }
 BigInt& BigInt::operator|=(const BigInt& b){
-    BigInt result;
-    result.is_positive = this->is_positive == b.is_positive;
-    result.vector = this->vector | b.vector;
-    *this = result;
+    *this = logic_operation(b, DISJUNCTION_CODE);
     return *this;
 }
 
 BigInt::operator int() const{
-    if (this->is_positive && this->vector > SmartVector(INT_MAX)){
+    if (_is_positive && _vector > SmartVector(INT_MAX)){
         return INT_MAX;
     }
-    if (!this->is_positive && this->vector > SmartVector(-(long long)(INT_MIN))){
+    if (!_is_positive && _vector > SmartVector(-(long long)(INT_MIN))){
         return INT_MIN;
     }
 
-    int abs_value = int(this->vector);
+    int abs_value = int(_vector);
 
-    return this->is_positive ? abs_value : -abs_value;
+    return _is_positive ? abs_value : -abs_value;
 }
 BigInt::operator std::string() const{
-    std::string result = std::string(this->vector);
+    std::string result = std::string(_vector);
 
-    if (!this->is_positive && !this->is_zero()){
+    if (!_is_positive){
         result.insert(0, 1, '-');
     }
     return result;
 }
 
 size_t BigInt::size() const{
-    return sizeof(this->is_positive) + this->vector.size();
+    return sizeof(_is_positive) + _vector.size();
 }
 bool BigInt::is_zero() const{
     return (int(*this)) == 0;
 }
-
 int BigInt::compare(const BigInt& b) const{
-    if (this->is_positive != b.is_positive){
-        return this->is_positive ? 1: -1;
+    if (_is_positive != b._is_positive){
+        return _is_positive ? 1 : -1;
     }
 
-    if (this->vector == b.vector){
+    if (_vector == b._vector){
         return 0;
     }
 
-    return ((this->vector > b.vector) == this->is_positive) ? 1 : -1;
+    return ((_vector > b._vector) == _is_positive) ? 1 : -1;
 }
 
 BigInt operator+(const BigInt& a, const BigInt& b){
-    BigInt result = a;
-    result += b;
-    return result;
+    return operation(a, b, ADDITION_CODE);
 }
 BigInt operator-(const BigInt& a, const BigInt& b){
-    BigInt result = a;
-    result -= b;
-    return result;
+    return operation(a, b, SUBTRACTION_CODE);
 }
 BigInt operator*(const BigInt& a, const BigInt& b){
-    BigInt result = a;
-    result *= b;
-    return result;
+    return operation(a, b, MULTIPLICATION_CODE);
 }
 BigInt operator/(const BigInt& a, const BigInt& b){
-    BigInt result = a;
-    result /= b;
-    return result;
+    return operation(a, b, DIV_CODE);
 }
 BigInt operator%(const BigInt& a, const BigInt& b){
-    BigInt result = a;
-    result %= b;
-    return result;
+    return operation(a, b, MOD_CODE);
 }
 BigInt operator^(const BigInt& a, const BigInt& b){
-    BigInt result = a;
-    result ^= b;
-    return result;
+    return operation(a, b, XOR_CODE);
 }
 BigInt operator&(const BigInt& a, const BigInt& b){
-    BigInt result = a;
-    result &= b;
-    return result;
+    return operation(a, b, CONJUNCTION_CODE);
 }
 BigInt operator|(const BigInt& a, const BigInt& b){
-    BigInt result = a;
-    result |= b;
-    return result;
+    return operation(a, b, DISJUNCTION_CODE);
 }
 
 std::ostream& operator<<(std::ostream& out, const BigInt &b){
