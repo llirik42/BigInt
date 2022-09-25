@@ -77,28 +77,22 @@ BigInt& BigInt::operator/=(const BigInt& b){
     if (b.is_zero()){
         throw std::invalid_argument("Division by zero");
     }
-
-    if (!b.is_positive){
-        this->is_positive = !this->is_positive;
-    }
+    this->is_positive = this->is_positive == b.is_positive;
     this->vector /= b.vector;
-
     return *this;
 }
 BigInt& BigInt::operator%=(const BigInt& b){
     if (b.is_zero()){
         throw std::invalid_argument("Division by zero");
     }
-
     if (!b.is_positive){
         throw std::invalid_argument("Attempt of getting reminded for division by a negative number");
     }
 
-    if (!b.is_positive){
-        this->is_positive = !this->is_positive;
+    while(!this->is_positive){
+        *this += b;
     }
     this->vector %= b.vector;
-
     return *this;
 }
 

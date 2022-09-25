@@ -320,3 +320,8 @@ TEST(division_test, division_test_test_33){
     BigInt b = BigInt(2);
     EXPECT_EQ(a % b, BigInt(0));
 }
+TEST(division_test, division_test_test_34){
+    BigInt a = BigInt(-2);
+    BigInt b = BigInt(3);
+    EXPECT_EQ(a % b, BigInt(1));
+}
