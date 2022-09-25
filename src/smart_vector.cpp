@@ -240,7 +240,7 @@ SmartVector& SmartVector::operator+=(const SmartVector& v){
 
     Block carry = 0;
     for (unsigned int i = 0; i < max_length; i++){
-        unsigned long long current_sum = _data[_length - i - 1] + carry;
+        unsigned long long current_sum = (unsigned long long) (_data[_length - i - 1]) + carry;
 
         if (v._length > i){
             current_sum += v._data[v._length - i - 1];
