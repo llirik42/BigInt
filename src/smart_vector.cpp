@@ -2,12 +2,7 @@
 #include "numeric_string.h"
 #include "utils.h"
 
-SmartVector::SmartVector(){
-    this->length = 1;
-
-    this->data = new Block[1];
-    this->data[0] = 0;
-}
+SmartVector::SmartVector(): length(1), data(new Block[1]) {data[0] = 0;}
 SmartVector::SmartVector(unsigned long long number){
     this->length = ceil_log(BASE, number);
 

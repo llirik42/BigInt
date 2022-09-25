@@ -5,6 +5,8 @@ class BigInt{
 private:
     bool is_positive;
     SmartVector vector;
+
+    int compare(const BigInt&) const;
 public:
     BigInt();
     explicit BigInt(int);

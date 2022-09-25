@@ -2,16 +2,8 @@
 #include "utils.h"
 #include <climits>
 
-BigInt::BigInt() {
-    this->is_positive = true;
-
-    this->vector = SmartVector(0);
-}
-BigInt::BigInt(int number) {
-    this->is_positive = (number >= 0);
-
-    this->vector = SmartVector(abs(number));
-}
+BigInt::BigInt(): is_positive(true), vector(SmartVector()) {}
+BigInt::BigInt(int number): is_positive(number >= 0), vector(SmartVector(abs(number))) {}
 BigInt::BigInt(const std::string& str) {
     if (!is_string_numeric(str)){
         throw std::invalid_argument("Invalid string for BigInt");
@@ -27,17 +19,11 @@ BigInt::BigInt(const std::string& str) {
 
     this->vector = SmartVector(tmp);
 }
-BigInt::BigInt(const BigInt& b) {
-    this->is_positive = b.is_positive;
-    this->vector = b.vector;
-}
-BigInt::BigInt(BigInt&& b) noexcept{
-    this->is_positive = b.is_positive;
-    this->vector = std::move(b.vector);
-}
+BigInt::BigInt(const BigInt& b)=default;
+BigInt::BigInt(BigInt&& b) noexcept: is_positive(b.is_positive), vector(std::move(b.vector)) {}
 BigInt::~BigInt()=default;
 
-BigInt& BigInt::operator=(const BigInt& b)= default;
+BigInt& BigInt::operator=(const BigInt& b)=default;
 BigInt& BigInt::operator=(BigInt&& b) noexcept{
     this->is_positive = b.is_positive;
     this->vector = std::move(b.vector);
@@ -57,6 +43,7 @@ BigInt& BigInt::operator+=(const BigInt& b){
     }
 
     *this = result;
+    this->is_positive = this->is_positive || this->is_zero();
     return *this;
 }
 BigInt& BigInt::operator*=(const BigInt& b){
@@ -65,12 +52,14 @@ BigInt& BigInt::operator*=(const BigInt& b){
     }
     this->vector *= b.vector;
 
+    this->is_positive = this->is_positive || this->is_zero();
     return *this;
 }
 BigInt& BigInt::operator-=(const BigInt& b){
     BigInt tmp = b;
     tmp.is_positive = !tmp.is_positive;
     *this += tmp;
+    this->is_positive = this->is_positive || this->is_zero();
     return *this;
 }
 BigInt& BigInt::operator/=(const BigInt& b){
@@ -79,6 +68,8 @@ BigInt& BigInt::operator/=(const BigInt& b){
     }
     this->is_positive = this->is_positive == b.is_positive;
     this->vector /= b.vector;
+    this->is_positive = this->is_positive || this->is_zero();
+
     return *this;
 }
 BigInt& BigInt::operator%=(const BigInt& b){
@@ -93,6 +84,7 @@ BigInt& BigInt::operator%=(const BigInt& b){
         *this += b;
     }
     this->vector %= b.vector;
+
     return *this;
 }
 
@@ -128,26 +120,22 @@ const BigInt BigInt::operator--(int){
 }
 
 bool BigInt::operator==(const BigInt& b) const{
-    return (this->is_zero() && b.is_zero()) || this->is_positive == b.is_positive && this->vector == b.vector;
+    return !compare(b);
 }
 bool BigInt::operator!=(const BigInt& b) const{
-    return !(b == *this);
+    return compare(b);
 }
 bool BigInt::operator>(const BigInt& b) const{
-    if (this->is_positive != b.is_positive){
-        return this->is_positive;
-    }
-
-    return this->is_positive ? this->vector > b.vector : b.vector > this->vector;
+    return compare(b) == 1;
 }
 bool BigInt::operator<(const BigInt& b) const{
-    return b > *this;
+    return compare(b) == -1;
 }
 bool BigInt::operator>=(const BigInt& b) const{
-    return !(*this < b);
+    return compare(b) >= 0;
 }
 bool BigInt::operator<=(const BigInt& b) const{
-    return !(b < *this);
+    return compare(b) <= 0;
 }
 
 BigInt& BigInt::operator^=(const BigInt& b){
@@ -198,6 +186,18 @@ size_t BigInt::size() const{
 }
 bool BigInt::is_zero() const{
     return (int(*this)) == 0;
+}
+
+int BigInt::compare(const BigInt& b) const{
+    if (this->is_positive != b.is_positive){
+        return this->is_positive ? 1: -1;
+    }
+
+    if (this->vector == b.vector){
+        return 0;
+    }
+
+    return ((this->vector > b.vector) == this->is_positive) ? 1 : -1;
 }
 
 BigInt operator+(const BigInt& a, const BigInt& b){

@@ -59,10 +59,7 @@ void NumericString::reduce_zeroes(){
     }
 }
 
-NumericString::NumericString(){
-    this->string = nullptr;
-    this->length = 0;
-}
+NumericString::NumericString(): length(0), string(nullptr) {}
 NumericString::NumericString(unsigned long long n){
     if (!n){
         this->length = 1;
