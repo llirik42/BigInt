@@ -312,38 +312,21 @@ SmartVector& SmartVector::operator-=(const SmartVector& v){
 
     const unsigned int delta_length = (_length - v._length);
 
-    unsigned int carry = 0;
-    bool f;
+    unsigned int debt = 0;
     for (unsigned int i = _length; i > 0; i--){
         unsigned long long digit1 = _data[i - 1];
 
-        if (carry){
-            f = digit1 == 0;
-
-            if (digit1 == 0){
-                carry = 1;
-            }
-
-            digit1 -= carry;
-        }
-        else{
-            f = false;
-        }
-
         const unsigned long long digit2 = i > delta_length ? v._data[i - delta_length - 1] : 0;
 
-        if (digit1 < digit2){
-            digit1 += BASE;
-            carry = 1;
+        if (debt){
+            debt = !digit1;
+            digit1 = digit1 ? digit1 - 1 : BASE - 1;
         }
 
-        if (f){
-            carry = 1;
-        }
+        debt = debt || digit1 < digit2;
+        digit1 += BASE * debt;
 
-        const unsigned long long current_difference = digit1 - digit2;
-
-        _data[i - 1] = Block(current_difference);
+        _data[i - 1] = Block(digit1 - digit2);
     }
 
     reduce_first_zero_blocks();
