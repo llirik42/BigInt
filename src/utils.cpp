@@ -1,6 +1,6 @@
 #include "utils.h"
 
-unsigned int ceil_log(unsigned long long base, unsigned long long number){
+unsigned int ceil_log(const unsigned long long& base, unsigned long long number){
     if (!number){
         return 1;
     }
@@ -15,7 +15,7 @@ unsigned int ceil_log(unsigned long long base, unsigned long long number){
     return result;
 }
 
-bool is_string_numeric(std::string str){
+bool is_string_numeric(const std::string& str){
     const unsigned int get_length = str.length();
 
     if (!get_length){

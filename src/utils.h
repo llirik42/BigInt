@@ -13,6 +13,8 @@ inline char digit_to_char(unsigned char d){
     return char(d + '0');
 }
 
-unsigned int ceil_log(unsigned long long base, unsigned long long number);
+// Ceil of log. If number = 0, returns 1
+unsigned int ceil_log(const unsigned long long& base, unsigned long long number);
 
-bool is_string_numeric(std::string str);
+// Is string can be converted to integer (positive of negative)
+bool is_string_numeric(const std::string& str);
