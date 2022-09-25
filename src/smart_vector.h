@@ -2,9 +2,9 @@
 
 #include <iostream>
 
-typedef unsigned int Block;
+typedef unsigned char Block;
 
-inline const unsigned long long BASE = 4294967296; // must be power of 2 for binary operations
+inline const unsigned long long BASE = 256; // must be power of 2 for binary operations
 
 class SmartVector{
 private:
@@ -15,6 +15,8 @@ private:
     void append_zero_blocks(unsigned int);
     void reduce_first_block();
     void reduce_first_zero_blocks();
+
+    SmartVector divide(const SmartVector&, bool);
 public:
     SmartVector();
     explicit SmartVector(unsigned long long);
@@ -43,6 +45,8 @@ public:
 
     explicit operator int() const;
     explicit operator std::string() const;
+
+    SmartVector& operator++();
 
     [[nodiscard]] size_t size() const;
 };

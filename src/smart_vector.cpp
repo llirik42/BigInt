@@ -76,7 +76,7 @@ SmartVector& SmartVector::operator+=(const SmartVector& v){
 
     this->extend_and_copy(max_length - this->length);
 
-    unsigned int carry = 0;
+    Block carry = 0;
     for (unsigned int i = 0; i < max_length; i++){
         unsigned long long current_sum = this->data[this->length - i - 1] + carry;
 
@@ -104,7 +104,7 @@ SmartVector& SmartVector::operator*=(const SmartVector& v){
     SmartVector result = *this;
 
     if (v.length == 1){
-        unsigned int carry = 0;
+        Block carry = 0;
 
         const unsigned long long operand_only_digit = v.data[0];
         for (unsigned int i = this->length; i > 0; i--){
@@ -114,7 +114,7 @@ SmartVector& SmartVector::operator*=(const SmartVector& v){
 
             result.data[i - 1] = product % BASE;
 
-            carry = (unsigned int) (product / BASE);
+            carry = (Block) (product / BASE);
         }
 
         if (carry){
@@ -192,80 +192,11 @@ SmartVector& SmartVector::operator-=(const SmartVector& v){
     return *this;
 }
 SmartVector& SmartVector::operator/=(const SmartVector& v){
-    if (v > *this){
-        *this = SmartVector(0);
-        return *this;
-    }
-
-    SmartVector r = SmartVector(0);
-
-    unsigned int current_index = 0;
-
-    SmartVector result;
-
-    while(v > r){
-        r = r * SmartVector(BASE) + SmartVector(this->data[current_index++]); //TODO SmartVector(BASE)
-    }
-    while(true){
-        unsigned long long current_digit = 0;
-        while(r >= v){
-            r -= v;
-            current_digit++;
-        }
-
-        result = result * SmartVector(BASE) + SmartVector(current_digit);
-
-        if (current_index == this->length){
-            break;
-        }
-
-        r = r * SmartVector(BASE) + SmartVector(this->data[current_index++]); //TODO SmartVector(BASE)
-
-        while(v > r){
-            if (current_index == this->length){
-                break;
-            }
-            result.append_zero_blocks(1);
-            r = r * SmartVector(BASE) + SmartVector(this->data[current_index++]); //TODO SmartVector(BASE)
-        }
-    }
-
-    *this = result;
+    *this = divide(v, false);
     return *this;
 }
 SmartVector& SmartVector::operator%=(const SmartVector& v){
-    if (v > *this){
-        return *this;
-    }
-
-    SmartVector result = SmartVector(0);
-
-    unsigned int current_index = 0;
-
-    while(v > result){
-        result = result * SmartVector(BASE) + SmartVector(this->data[current_index++]); //TODO SmartVector(BASE)
-    }
-
-    while(true){
-        while(result >= v){
-            result -= v;
-        }
-
-        if (current_index == this->length){
-            break;
-        }
-
-        result = result * SmartVector(BASE) + SmartVector(this->data[current_index++]); //TODO SmartVector(BASE)
-
-        while(v > result){
-            if (current_index == this->length){
-                break;
-            }
-            result = result * SmartVector(BASE) + SmartVector(this->data[current_index++]); //TODO SmartVector(BASE)
-        }
-    }
-
-    *this = result;
+    *this = divide(v, true);
     return *this;
 }
 SmartVector& SmartVector::operator^=(const SmartVector& v){
@@ -422,8 +353,10 @@ void SmartVector::reduce_first_zero_blocks(){
 
 SmartVector::operator int() const{
     int result = 0;
-    for (unsigned int i = this->length; i > 0; i--){
-        result += int(this->data[i - 1]);
+    unsigned int current_m = 1;
+    const unsigned int m = BASE;
+    for (unsigned int i = this->length; i > 0; i--, current_m *= m){
+        result += int(this->data[i - 1] * current_m);
     }
 
     return result;
@@ -445,6 +378,58 @@ SmartVector::operator std::string() const{
 
 size_t SmartVector::size() const{
     return sizeof(this->length) + sizeof(this->data) + length * sizeof(Block);
+}
+
+SmartVector SmartVector::divide(const SmartVector& operand, bool mod){
+    if (operand > *this){
+        SmartVector mod_result = *this;
+        return mod ? mod_result : SmartVector(0);
+    }
+    if (operand == *this){
+        return mod ? SmartVector(0) : SmartVector(1);
+    }
+    if (operand == SmartVector(1)){
+        SmartVector div_result = *this;
+        return mod ? SmartVector(0) : div_result;
+    }
+
+    const SmartVector baseSmartVector = SmartVector(BASE);
+    const SmartVector zeroSmartVector = SmartVector(0);
+
+    SmartVector q = SmartVector(0);
+    SmartVector r = SmartVector(0);
+
+    unsigned int current_index = 0;
+
+    while(operand > r){
+        r = r * baseSmartVector + SmartVector(this->data[current_index++]);
+        unsigned long long t = int(r);
+        std::cout << t;
+
+    }
+
+    while(true){
+        q = q * baseSmartVector;
+        while(r >= operand){
+            r -= operand;
+            ++q;
+        }
+
+        if (current_index == this->length){
+            break;
+        }
+
+        r = r * baseSmartVector + SmartVector(this->data[current_index++]);
+        unsigned long long x = int(r);
+        std::cout << x;
+    }
+
+    return mod ? r : q;
+}
+
+SmartVector& SmartVector::operator++(){
+    *this = *this + SmartVector(1);
+    return *this;
 }
 
 SmartVector operator+(const SmartVector& v1, const SmartVector& v2){
@@ -493,6 +478,5 @@ SmartVector operator|(const SmartVector& v1, const SmartVector& v2){
 
 std::ostream& operator<<(std::ostream& out, const SmartVector &b){
     out << std::string(b);
-
     return out;
 }

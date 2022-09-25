@@ -306,7 +306,17 @@ TEST(division_test, division_test_test_30){
     EXPECT_EQ(a % b, BigInt(9));
 }
 TEST(division_test, division_test_test_31){
+    BigInt a = BigInt(65537);
+    BigInt b = BigInt(257);
+    EXPECT_EQ(a % b, BigInt(2));
+}
+TEST(division_test, division_test_test_32){
     BigInt a = BigInt("12345678901234567890");
     BigInt b = BigInt("99999999999");
     EXPECT_EQ(a % b, BigInt(1358024679));
+}
+TEST(division_test, division_test_test_33){
+    BigInt a = BigInt(10000);
+    BigInt b = BigInt(2);
+    EXPECT_EQ(a % b, BigInt(0));
 }
