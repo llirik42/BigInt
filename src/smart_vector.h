@@ -9,8 +9,8 @@ inline const unsigned int BASE = (unsigned int) (pow(2, sizeof(Block) * 8)); // 
 
 class SmartVector{
 private:
-    Block* _data;
     unsigned int _length;
+    Block* _data;
 
     void extend_and_copy(const unsigned int& delta);
     void append_zero_blocks(const unsigned int& count);

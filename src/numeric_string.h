@@ -2,8 +2,8 @@
 
 class NumericString{
 private:
-    char* _string;
     unsigned int _length;
+    char* _string;
 
     void append(char c, unsigned int count);
     void insert_front(char c);

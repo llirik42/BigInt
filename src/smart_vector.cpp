@@ -196,8 +196,8 @@ SmartVector::SmartVector(const std::string& s){
     }
 }
 SmartVector::SmartVector(SmartVector&& v) noexcept{
-    _data = v._data;
     _length = v._length;
+    _data = v._data;
     v._data = nullptr;
 }
 SmartVector::SmartVector(const SmartVector& v){
@@ -247,7 +247,7 @@ SmartVector& SmartVector::operator+=(const SmartVector& v){
         }
 
         _data[_length - i - 1] = Block(current_sum % BASE);
-        carry = current_sum > BASE;
+        carry = current_sum >= BASE;
     }
 
     if (carry){
