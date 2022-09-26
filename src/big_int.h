@@ -67,4 +67,4 @@ BigInt operator&(const BigInt&, const BigInt&);
 BigInt operator|(const BigInt&, const BigInt&);
 
 std::ostream& operator<<(std::ostream&, const BigInt&);
-std::istream& operator>>(std::istream&, BigInt&); // Throws std::invalid_argument if input is incorrect
+std::istream& operator>>(std::istream&, BigInt&);

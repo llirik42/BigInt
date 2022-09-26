@@ -257,11 +257,9 @@ int BigInt::compare(const BigInt& b) const{
         return _is_positive ? 1 : -1;
     }
 
-    if (_vector == b._vector){
-        return 0;
-    }
+    int vectors_comparison_result = _vector.compare(b._vector);
 
-    return ((_vector > b._vector) == _is_positive) ? 1 : -1;
+    return _is_positive ? vectors_comparison_result : -vectors_comparison_result;
 }
 
 BigInt operator+(const BigInt& a, const BigInt& b){
@@ -295,14 +293,59 @@ std::ostream& operator<<(std::ostream& out, const BigInt &b){
 }
 std::istream& operator>>(std::istream& in, BigInt& b){
     std::string in_str;
+    std::string result_input;
 
     in >> in_str;
 
-    if (!is_string_numeric(in_str)){
-        throw std::invalid_argument("Invalid string for BigInt");
+    bool met_minus = false;
+    bool is_prev_char_minus = false;
+    char first_digit = -1;
+
+    const unsigned int length = in_str.length();
+    for (unsigned int i = 0; i < length; i++){
+        char current_char = in_str[i];
+
+        if (std::isspace(current_char)){
+            if (result_input.length()){
+                break;
+            }
+            continue;
+        }
+
+        if (current_char == '-'){
+            if (met_minus){
+                break;
+            }
+            met_minus = true;
+            is_prev_char_minus = true;
+            continue;
+        }
+        else if (!std::isdigit(current_char)){
+            break;
+        }
+
+        if (first_digit == -1){
+            first_digit = current_char;
+        }
+
+        if (is_prev_char_minus && current_char == '0'){
+            break;
+        }
+
+        if (first_digit == '0'){
+            break;
+        }
+
+        if (is_prev_char_minus){
+            result_input.append(1, '-');
+        }
+
+        result_input.append(1, current_char);
+
+        is_prev_char_minus = false;
     }
 
-    b = BigInt(in_str);
+    b = result_input.length() ? BigInt(result_input) : BigInt(0);
 
     return in;
 }

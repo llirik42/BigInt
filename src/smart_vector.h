@@ -53,6 +53,7 @@ public:
     explicit operator std::string() const;
 
     [[nodiscard]] size_t size() const; // Size in bytes for object
+    [[nodiscard]] int compare(const SmartVector& v) const; // Returns -1, 0, 1 if object <, == or > "b"
 };
 
 SmartVector operator+(const SmartVector& v1, const SmartVector& v2);

@@ -371,35 +371,16 @@ SmartVector& SmartVector::operator++(){
 }
 
 bool SmartVector::operator==(const SmartVector& v) const{
-    if (_length != v._length){
-        return false;
-    }
-
-    for (unsigned int i = v._length; i > 0; i--){
-        if (_data[i - 1] != v._data[i - 1]){
-            return false;
-        }
-    }
-
-    return true;
+    return !compare(v);
 }
 bool SmartVector::operator!=(const SmartVector& v) const{
-    return !(*this == v);
+    return compare(v);
 }
 bool SmartVector::operator>(const SmartVector& v) const{
-    if (_length != v._length){
-        return _length > v._length;
-    }
-    for (unsigned int i = 0; i < v._length; i++){
-        if (_data[i] != v._data[i]){
-            return _data[i] > v._data[i];
-        }
-    }
-
-    return false;
+    return compare(v) == 1;
 }
 bool SmartVector::operator>=(const SmartVector& v) const{
-    return *this == v || *this > v;
+    return compare(v) >= 0;
 }
 
 SmartVector::operator int() const{
@@ -427,6 +408,19 @@ SmartVector::operator std::string() const{
 
 size_t SmartVector::size() const{
     return sizeof(_length) + sizeof(_data) + _length * sizeof(Block);
+}
+int SmartVector::compare(const SmartVector& v) const{
+    if (_length != v._length){
+        return _length > v._length ? 1 : -1;
+    }
+
+    for (unsigned int i = 0; i < v._length; i++){
+        if (_data[i] != v._data[i]){
+            return _data[i] > v._data[i] ? 1 : -1;
+        }
+    }
+
+    return 0;
 }
 
 SmartVector operator+(const SmartVector& v1, const SmartVector& v2){
